@@ -1,6 +1,6 @@
 package entradas;
 
-import java.util.ArrayList;
+import java.util.ArrayList; //falta ver diferencias y porque usar uno o el otro
 import java.util.List;
 
 public class Usuarios {
