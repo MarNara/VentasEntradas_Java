@@ -15,6 +15,7 @@ public class MainVentas {
 
         while (!salir) {
             try {
+            	limpiarPantalla();//esto hace que la primera parte tenga el tremeno espacio para que no este pegado
                 // 2. Menú principal  NO SE QUE TAN NECESARIA SEA LA PARTE DE AGREGAR EVENTO
                 System.out.println("===== SISTEMA DE VENTA DE ENTRADAS =====");
                 System.out.println("1. Registrar nuevo usuario");
@@ -24,6 +25,7 @@ public class MainVentas {
                 System.out.println("5. Mostrar disponibilidad de ubicaciones");
                 System.out.println("6. Salir");
                 System.out.print("Seleccione una opción: ");
+               
 
                 int opcion = Integer.parseInt(br.readLine());
 
@@ -37,6 +39,10 @@ public class MainVentas {
                         System.out.print("Ingrese intereses separados por coma: ");
                         String intereses = br.readLine();
                         sistema.registrarUsuarios(nombre, edad, intereses);
+                        System.out.println("Usuario registrado exitosamente.");
+                        System.out.println("Presione ENTER para volver al menú...");
+                        br.readLine(); // pausa hasta que el usuario presione Enter
+                        limpiarPantalla();
                         break;
 
                     case 2:
@@ -48,6 +54,10 @@ public class MainVentas {
                         System.out.print("Fecha del evento: ");
                         String fecha = br.readLine();
                         sistema.registrarEvento(nombreEvento, categoria, fecha);
+                        System.out.println("Evento registrado exitosamente.");
+                        System.out.println("Presione ENTER para volver al menú...");
+                        br.readLine(); // pausa hasta que el usuario presione Enter
+                        limpiarPantalla();
                         break;
 
                     case 3:
@@ -62,6 +72,10 @@ public class MainVentas {
                         System.out.print("Nombre del evento: ");
                         String eventoCompra = br.readLine();
                         sistema.realizarVenta(usuarioCompra, eventoCompra);
+                        System.out.println("Entrada comprada exitosamente.");
+                        System.out.println("Presione ENTER para volver al menú...");
+                        br.readLine(); // pausa hasta que el usuario presione Enter
+                        limpiarPantalla();
                         break;
 
                     case 5:
@@ -69,6 +83,8 @@ public class MainVentas {
                         System.out.print("Nombre del evento: ");
                         String eventoDisponibilidad = br.readLine();
                         sistema.mostrarUbicacionesDisponibles(eventoDisponibilidad);
+                        br.readLine(); // pausa hasta que el usuario presione Enter
+                        limpiarPantalla();
                         break;
 
                     case 6:
@@ -89,4 +105,10 @@ public class MainVentas {
             }
         }
     }
+    public static void limpiarPantalla() {
+        for (int i = 0; i < 50; i++) {
+            System.out.println();
+        }
+    }
+
 }
