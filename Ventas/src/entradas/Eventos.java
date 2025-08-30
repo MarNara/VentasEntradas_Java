@@ -10,15 +10,24 @@ public class Eventos {
 
     public Eventos(String nombre, String lugar, Date fecha, int capacidad) { }
 
-    public String getNombre() { }
+    public String getNombre() {
+    	return nombre;
+    }
     public void setNombre(String nombre) { }
 
-    public String getLugar() { }
+    public String getLugar() { 
+    	return lugar;
+    }
     public void setLugar(String lugar) { }
 
-    public Date getFecha() { }
-    public void setFecha(Date fecha) { }
+    public Date getFecha() {
+    	return fecha;
+    }
+    public void setFecha(Date fecha) { 
+    }
 
-    public int getCapacidad() { }
+    public int getCapacidad() {
+    	return capacidad;
+    }
     public void setCapacidad(int capacidad) { }
 }

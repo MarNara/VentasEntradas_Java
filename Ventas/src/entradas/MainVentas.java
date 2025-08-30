@@ -1,3 +1,5 @@
+package entradas;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
@@ -34,7 +36,7 @@ public class MainVentas {
                         int edad = Integer.parseInt(br.readLine());
                         System.out.print("Ingrese intereses separados por coma: ");
                         String intereses = br.readLine();
-                        sistema.registrarUsuario(nombre, edad, intereses);
+                        sistema.registrarUsuarios(nombre, edad, intereses);
                         break;
 
                     case 2:

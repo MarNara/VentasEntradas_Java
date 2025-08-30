@@ -5,14 +5,20 @@ public class Entrada {
     private Usuarios usuario;
     private double precio;
 
-    public Entrada(Eventos evento, Usuario usuario, double precio) { }
+    public Entrada(Eventos evento, Usuarios usuario, double precio) { }
 
-    public Eventos getEvento() { }
+    public Eventos getEvento() { 
+    	return evento;
+    }
     public void setEvento(Eventos evento) { }
 
-    public Usuario getUsuario() { }
-    public void setUsuario(Usuario usuario) { }
+    public Usuarios getUsuario() {
+    	return usuario;
+    }
+    public void setUsuario(Usuarios usuario) { }
 
-    public double getPrecio() { }
+    public double getPrecio() { 
+    	return precio;
+    }
     public void setPrecio(double precio) { }
 }
