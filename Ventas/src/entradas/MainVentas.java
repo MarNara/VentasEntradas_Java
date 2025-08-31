@@ -36,7 +36,7 @@ public class MainVentas {
                         String nombre = br.readLine();
                         System.out.print("Edad: ");
                         int edad = Integer.parseInt(br.readLine());
-                        System.out.print("Ingrese intereses separados por coma: ");
+                        System.out.println("Ingrese intereses separados por coma: ");
                         String intereses = br.readLine();
                         sistema.registrarUsuarios(nombre, edad, intereses);
                         System.out.println("Usuario registrado exitosamente.");
