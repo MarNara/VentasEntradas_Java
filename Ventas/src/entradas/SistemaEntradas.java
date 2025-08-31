@@ -2,61 +2,110 @@ package entradas;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Date;
 
 public class SistemaEntradas {
-    private List<Usuarios> usuarios = new ArrayList<>();
-    private List<Eventos> eventos = new ArrayList<>();
-    private List<Entrada> entradas = new ArrayList<>();
+    private List<Usuarios> usuarios;
+    private List<Eventos> eventos;
+    private List<Entrada> entradas;
 
-    //Lista global de temas de interés
-    private List<String> temasInteres = List.of("Tecnología", "Música", "Ciencia", "Arte", "Deportes", "Cine");
+    public SistemaEntradas() {
+        this.usuarios = new ArrayList<>();
+        this.eventos = new ArrayList<>();
+        this.entradas = new ArrayList<>();
+    }
 
+    // Carga de datos iniciales de ejemplo
     public void cargarDatosIniciales() {
-        // Ejemplo de precarga
-        Usuarios u = new Usuarios("Ana", 25);
-        u.agregarInteres("Ciencia");
+        // Usuarios iniciales
+        List<String> intereses1 = new ArrayList<>();
+        intereses1.add("Tecnología");
+        intereses1.add("Negocios");
+        Usuarios u1 = new Usuarios("Ana", 25, intereses1);
+        usuarios.add(u1);
+
+        List<String> intereses2 = new ArrayList<>();
+        intereses2.add("Arte");
+        intereses2.add("Ciencia");
+        Usuarios u2 = new Usuarios("Luis", 30, intereses2);
+        usuarios.add(u2);
+
+        // Eventos iniciales
+        Eventos ev1 = new Eventos("Charla de Java", "Auditorio 1", new Date(), 50);
+        Eventos ev2 = new Eventos("Seminario de Física", "Sala 2", new Date(), 40);
+        eventos.add(ev1);
+        eventos.add(ev2);
+    }
+
+    // Registro de usuarios
+    public void registrarUsuarios(String nombre, int edad, String interesesStr) {
+        String[] interesesArr = interesesStr.split(",");
+        List<String> intereses = new ArrayList<>();
+        for (String i : interesesArr) {
+            intereses.add(i.trim());
+        }
+        Usuarios u = new Usuarios(nombre, edad, intereses);
         usuarios.add(u);
-
-        Eventos e = new Eventos("Charla AI", "Auditorio 1", "10/09/2025 18:00", 500);
-        eventos.add(e);
     }
 
-    public void registrarUsuarios(String nombre, int edad) {
-        usuarios.add(new Usuarios(nombre, edad));
+    // Registro de eventos
+    public void registrarEvento(String nombreEvento, String lugar, String fechaStr) {
+        // Por simplicidad convertimos fechaStr a Date como nueva Date()
+        Eventos ev = new Eventos(nombreEvento, lugar, new Date(), 50); // Capacidad default
+        eventos.add(ev);
     }
 
-    public void registrarEvento(String nombreEvento, String lugar, String fecha, double costoBase) {
-        eventos.add(new Eventos(nombreEvento, lugar, fecha, costoBase));
-    }
-
+    // Mostrar todos los eventos
     public void mostrarEventos() {
-        System.out.println("=== Eventos disponibles ===");
+        System.out.println("Eventos disponibles:");
         for (Eventos e : eventos) {
-            System.out.println("Evento: " + e.getNombre() + " | Lugar: " + e.getLugar() + " | Fecha: " + e.getFecha() + " | Costo Base: $" + e.getCostoBase());
+            System.out.println("Nombre: " + e.getNombre() + " | Lugar: " + e.getLugar() +
+                               " | Fecha: " + e.getFecha() + " | Capacidad: " + e.getCapacidad());
         }
     }
 
-    public void mostrarTemas() {
-        System.out.println("=== Temas disponibles ===");
-        for (int i = 0; i < temasInteres.size(); i++) {
-            System.out.println((i + 1) + ". " + temasInteres.get(i));
-        }
-    }
-
-    public List<String> getTemasInteres() { return temasInteres; }
-
+    // Realizar venta de entrada
     public void realizarVenta(String nombreUsuario, String nombreEvento) {
-        Usuarios usuario = usuarios.stream().filter(u -> u.getNombre().equals(nombreUsuario)).findFirst().orElse(null);
-        Eventos evento = eventos.stream().filter(e -> e.getNombre().equals(nombreEvento)).findFirst().orElse(null);
+        Usuarios usuario = null;
+        Eventos evento = null;
+
+        // Buscar usuario
+        for (Usuarios u : usuarios) {
+            if (u.getNombre().equalsIgnoreCase(nombreUsuario)) {
+                usuario = u;
+                break;
+            }
+        }
+
+        // Buscar evento
+        for (Eventos e : eventos) {
+            if (e.getNombre().equalsIgnoreCase(nombreEvento)) {
+                evento = e;
+                break;
+            }
+        }
 
         if (usuario != null && evento != null) {
-            entradas.add(new Entrada(evento, usuario, evento.getCostoBase()));
-            System.out.println("Compra realizada correctamente para " + usuario.getNombre());
+            Entrada entrada = new Entrada(evento, usuario, 100); // Precio fijo para ejemplo
+            entradas.add(entrada);
+            System.out.println("Entrada vendida a " + usuario.getNombre() + " para " + evento.getNombre());
         } else {
             System.out.println("Usuario o Evento no encontrado.");
         }
     }
 
+    // Mostrar entradas disponibles
+    public void mostrarUbicacionesDisponibles(String nombreEvento) {
+        for (Eventos e : eventos) {
+            if (e.getNombre().equalsIgnoreCase(nombreEvento)) {
+                System.out.println("Evento: " + e.getNombre() + " | Capacidad restante: " + e.getCapacidad());
+                return;
+            }
+        }
+        System.out.println("Evento no encontrado.");
+    }
+
+    // Getters y setters
     public List<Usuarios> getUsuarios() { return usuarios; }
     public List<Eventos> getEventos() { return eventos; }
     public List<Entrada> getEntradas() { return entradas; }
