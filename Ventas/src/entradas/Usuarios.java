@@ -8,12 +8,17 @@ public class Usuarios {
     private int edad;
     private List<String> intereses;
 
-    public Usuarios(String nombre, int edad) {
+    public Usuarios(String nombre, int edad, List<String> intereses) {
         this.nombre = nombre;
         this.edad = edad;
-        this.intereses = new ArrayList<>();
+        if (intereses == null) {
+            this.intereses = new ArrayList<>();
+        } else {
+            this.intereses = intereses;
+        }
     }
 
+    // Getters y Setters
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
 
@@ -27,4 +32,3 @@ public class Usuarios {
         intereses.add(interes);
     }
 }
-
