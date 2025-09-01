@@ -1,134 +1,163 @@
 package entradas;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.ArrayList;
 
 public class MainVentas {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         SistemaEntradas sistema = new SistemaEntradas();
         sistema.cargarDatosIniciales();
 
-        boolean salir = false;
+        // Lista de temas disponibles
+        List<String> temasInteres = new ArrayList<>();
+        temasInteres.add("Tecnología");
+        temasInteres.add("Deportes");
+        temasInteres.add("Música");
+        temasInteres.add("Arte");
+        temasInteres.add("Ciencia");
 
-        while (!salir) {
-            try {
-                limpiarPantalla();
-                System.out.println("=== SISTEMA DE VENTA DE ENTRADAS ===");
-                System.out.println("1. Menu Usuario");
-                System.out.println("2. Menu Operador");
-                System.out.println("3. Salir");
-                System.out.print("Seleccione opción: ");
-                int opcion = Integer.parseInt(br.readLine());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
-                switch (opcion) {
-                    case 1: menuUsuario(sistema, br);
-                    case 2: menuOperador(sistema, br);
-                    case 3: salir = true;
-                    default: System.out.println("Opción inválida.");
-                }
+        boolean salirSistema = false;
+        while(!salirSistema) {
+            System.out.println("===== BIENVENIDO =====");
+            System.out.println("1. Usuario");
+            System.out.println("2. Operador");
+            System.out.println("3. Salir");
+            System.out.print("Seleccione opción: ");
+            int rol = Integer.parseInt(br.readLine());
 
-            } catch (IOException e) {
-                System.out.println("Error de entrada/salida.");
-            } catch (NumberFormatException e) {
-                System.out.println("Debe ingresar un número válido.");
-            }
-        }
-    }
+            switch(rol) {
+                case 1: // Menú Usuario
+                    boolean salirUsuario = false;
+                    while(!salirUsuario) {
+                        System.out.println("\n===== MENÚ USUARIO =====");
+                        System.out.println("1. Registrar usuario");
+                        System.out.println("2. Comprar entrada");
+                        System.out.println("3. Mostrar eventos");
+                        System.out.println("4. Mostrar disponibilidad de eventos");
+                        System.out.println("5. Volver al menú principal");
+                        System.out.print("Seleccione opción: ");
+                        int op = Integer.parseInt(br.readLine());
 
-    // ===================== Menú Usuario =====================
-    private static void menuUsuario(SistemaEntradas sistema, BufferedReader br) throws IOException {
-        limpiarPantalla();
-        System.out.println("=== MENU USUARIO ===");
-        System.out.println("1. Registrar Usuario");
-        System.out.println("2. Ver Temas y agregar intereses");
-        System.out.println("3. Comprar entrada");
-        System.out.println("4. Ver eventos");
-        System.out.println("5. Volver");
-        System.out.print("Seleccione opción: ");
-        int op = Integer.parseInt(br.readLine());
+                        switch(op) {
+                            case 1: // Registrar usuario
+                                System.out.print("Nombre: "); 
+                                String n = br.readLine();
+                                System.out.print("Edad: "); 
+                                int e = Integer.parseInt(br.readLine());
 
-        switch (op) {
-            case 1: {
-                System.out.print("Nombre: ");
-                String nombre = br.readLine();
-                System.out.print("Edad: ");
-                int edad = Integer.parseInt(br.readLine());
-                sistema.registrarUsuarios(nombre, edad);
-                System.out.println("Usuario registrado.");
-                br.readLine();
-            }
-            case 2: {
-                System.out.print("Nombre del usuario: ");
-                String nombre = br.readLine();
-                Usuarios u = sistema.getUsuarios().stream().filter(us -> us.getNombre().equals(nombre)).findFirst().orElse(null);
-                if (u != null) {
-                    List<String> temas = sistema.getTemasInteres();
-                    System.out.println("=== Temas disponibles ===");
-                    for (int i = 0; i < temas.size(); i++) {
-                        System.out.println((i + 1) + ". " + temas.get(i));
+                                System.out.println("Seleccione temas de interés (separados por coma):");
+                                for(int i=0;i<temasInteres.size();i++)
+                                    System.out.println((i+1) + ". " + temasInteres.get(i));
+                                System.out.print("Ingrese números de los temas: ");
+                                String seleccion = br.readLine();
+                                String[] indices = seleccion.split(",");
+                                List<String> intereses = new ArrayList<>();
+                                for(String idx : indices) {
+                                    int i = Integer.parseInt(idx.trim()) - 1;
+                                    if(i >=0 && i < temasInteres.size()) intereses.add(temasInteres.get(i));
+                                }
+
+                                sistema.registrarUsuarios(n,e,String.join(",", intereses));
+                                break;
+
+                            case 2: // Comprar entrada
+                                System.out.print("Nombre usuario: "); 
+                                String u = br.readLine();
+
+                                List<Eventos> eventos = sistema.getEventos();
+                                if(eventos.isEmpty()) {
+                                    System.out.println("No hay eventos disponibles.");
+                                    break;
+                                }
+                                System.out.println("Seleccione evento:");
+                                for(int i=0;i<eventos.size();i++)
+                                    System.out.println((i+1) + ". " + eventos.get(i).getNombre() + 
+                                                       " | " + eventos.get(i).getLugar() + 
+                                                       " | " + eventos.get(i).getFecha());
+                                System.out.print("Ingrese número del evento: ");
+                                int evIdx = Integer.parseInt(br.readLine()) - 1;
+                                if(evIdx >=0 && evIdx < eventos.size()) {
+                                    Eventos evSeleccionado = eventos.get(evIdx);
+                                    sistema.realizarVenta(u, evSeleccionado.getNombre());
+                                } else {
+                                    System.out.println("Selección inválida.");
+                                }
+                                break;
+
+                            case 3: // Mostrar eventos
+                                sistema.mostrarEventos();
+                                break;
+
+                            case 4: // Mostrar disponibilidad
+                                System.out.print("Nombre evento: "); 
+                                String evd = br.readLine();
+                                sistema.mostrarUbicacionesDisponibles(evd);
+                                break;
+
+                            case 5: // Volver
+                                salirUsuario = true;
+                                break;
+                        }
                     }
-                    System.out.print("Seleccione el número del tema a agregar: ");
-                    int sel = Integer.parseInt(br.readLine());
-                    if (sel >= 1 && sel <= temas.size()) {
-                        u.agregarInteres(temas.get(sel - 1));
-                        System.out.println("Interés agregado.");
+                    break;
+
+                case 2: // Menú Operador
+                    System.out.print("Nombre operador: ");
+                    String nombreOp = br.readLine();
+                    Operador operador = new Operador(nombreOp, sistema);
+
+                    boolean salirOperador = false;
+                    while(!salirOperador) {
+                        System.out.println("\n===== MENÚ OPERADOR =====");
+                        System.out.println("1. Registrar evento");
+                        System.out.println("2. Mostrar usuarios");
+                        System.out.println("3. Mostrar ventas");
+                        System.out.println("4. Volver al menú principal");
+                        System.out.print("Seleccione opción: ");
+                        int op = Integer.parseInt(br.readLine());
+
+                        switch(op) {
+                            case 1: // Registrar evento
+                                System.out.print("Nombre evento: "); 
+                                String ne = br.readLine();
+                                System.out.print("Lugar: "); 
+                                String lu = br.readLine();
+                                System.out.print("Fecha (dd/MM/yyyy): "); 
+                                String fe = br.readLine();
+                                try {
+                                    Date fecha = sdf.parse(fe);
+                                    operador.registrarEvento(ne, lu, fecha);
+                                } catch (java.text.ParseException ex) {
+                                    System.out.println("Formato de fecha inválido. Use dd/MM/yyyy.");
+                                }
+                                break;
+
+                            case 2: // Mostrar usuarios
+                                operador.mostrarUsuarios();
+                                break;
+
+                            case 3: // Mostrar ventas
+                                operador.mostrarVentas();
+                                break;
+
+                            case 4: // Volver
+                                salirOperador = true;
+                                break;
+                        }
                     }
-                    br.readLine();
-                }
+                    break;
+
+                case 3:
+                    salirSistema = true;
+                    break;
             }
-            case 3: {
-                System.out.print("Nombre del usuario: ");
-                String usuarioCompra = br.readLine();
-                System.out.print("Nombre del evento: ");
-                String eventoCompra = br.readLine();
-                sistema.realizarVenta(usuarioCompra, eventoCompra);
-                br.readLine();
-            }
-            case 4: {
-                sistema.mostrarEventos();
-                br.readLine();
-            }
-            default: System.out.println("Volviendo...");
         }
-    }
-
-    // ===================== Menú Operador =====================
-    private static void menuOperador(SistemaEntradas sistema, BufferedReader br) throws IOException {
-        limpiarPantalla();
-        System.out.println("=== MENU OPERADOR ===");
-        System.out.println("1. Crear Evento");
-        System.out.println("2. Ver eventos");
-        System.out.println("3. Volver");
-        System.out.print("Seleccione opción: ");
-        int op = Integer.parseInt(br.readLine());
-
-        switch (op) {
-            case 1: {
-                System.out.print("Nombre evento: ");
-                String ne = br.readLine();
-                System.out.print("Lugar evento: ");
-                String le = br.readLine();
-                System.out.print("Fecha evento (dd/mm/yyyy HH:mm): ");
-                String fe = br.readLine();
-                System.out.print("Costo base: ");
-                double costo = Double.parseDouble(br.readLine());
-                sistema.registrarEvento(ne, le, fe, costo);
-                System.out.println("Evento creado.");
-                br.readLine();
-            }
-            case 2: {
-                sistema.mostrarEventos();
-                br.readLine();
-            }
-            default: System.out.println("Volviendo...");
-        }
-    }
-
-    // ===================== Limpieza de pantalla =====================
-    public static void limpiarPantalla() {
-        for (int i = 0; i < 50; i++) System.out.println();
     }
 }
