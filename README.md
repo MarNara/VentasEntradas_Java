@@ -1,4 +1,3 @@
-Claro, aquí tienes un ejemplo de **README.md** para tu proyecto de venta de entradas en Java, enfocado en la ejecución desde Git Bash:
 
 ```markdown
 # Sistema de Venta de Entradas a Eventos
