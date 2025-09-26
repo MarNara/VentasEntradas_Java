@@ -1,3 +1,4 @@
+
 package entradas;
 import java.util.Map;
 
@@ -11,7 +12,7 @@ public class Operador {
     }
 
     public void registrarEvento(String nombreEvento, String lugarEvento, java.util.Date fechaEvento) {
-        sistema.registrarEvento(nombreEvento, lugarEvento, fechaEvento);
+        sistema.registrarEvento(nombreEvento, lugarEvento, fechaEvento, 0, lugarEvento, null);
         System.out.println("Evento registrado correctamente por el operador.");
     }
 
