@@ -3,7 +3,9 @@ package entradas;
 import javax.swing.*;
 import java.awt.*;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Ventanas extends JFrame {
     private final CardLayout cardLayout = new CardLayout();
@@ -13,7 +15,6 @@ public class Ventanas extends JFrame {
     private final JButton btnRegistrar = new JButton("Registrar Usuario");
     private final JButton btnEventos = new JButton("Mostrar Eventos");
     private final JButton btnComprar = new JButton("Comprar Entrada");
-    private final JButton btnDisponibilidad = new JButton("Disponibilidad Evento");
 
     // ====== BOTONES MENÚ OPERADOR ======
     private final JButton btnRegistrarEvento = new JButton("Registrar Evento");
@@ -21,18 +22,23 @@ public class Ventanas extends JFrame {
     private final JButton btnMostrarVentas = new JButton("Mostrar Ventas");
 
     // ====== PANELES ======
-    private final JPanel panelInicio = new JPanel();       // menú principal de roles
-    private final JPanel panelMenuUsuario = new JPanel();  // menú usuario
+    private final JPanel panelInicio = new JPanel();
+    private final JPanel panelMenuUsuario = new JPanel();
     private final JPanel panelRegistrar = new JPanel();
     private final JPanel panelEventos = new JPanel();
     private final JPanel panelComprar = new JPanel();
     private final JPanel panelDisponibilidad = new JPanel();
-    private final JPanel panelMenuOperador = new JPanel(); // menú operador
+    private final JPanel panelMenuOperador = new JPanel();
+    private final JPanel panelUsuarios = new JPanel();
+    private final JPanel panelVentas = new JPanel();
 
-    // Mostrar usuarios y ventas
+    // ====== LISTAS PARA GUI ======
     private final DefaultListModel<String> modeloUsuarios = new DefaultListModel<>();
     private final JList<String> listaUsuarios = new JList<>(modeloUsuarios);
-    private final JTextField txtFiltroInteres = new JTextField(15);
+    private final JTextField txtFiltroInteres = new JTextField(15); //MMMM
+
+    private final DefaultListModel<String> modeloEventos = new DefaultListModel<>();
+    private final JList<String> listaEventos = new JList<>(modeloEventos);
 
     private final DefaultListModel<String> modeloVentas = new DefaultListModel<>();
     private final JList<String> listaVentas = new JList<>(modeloVentas);
@@ -48,7 +54,32 @@ public class Ventanas extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // ====== PANEL INICIO ======
+        initPanelInicio();
+        initPanelMenuUsuario();
+        initPanelRegistrar();
+        initPanelEventos();
+        initPanelComprar();
+        initPanelMenuOperador();
+        initPanelUsuarios();
+        initPanelVentas();
+
+        // ====== CARDLAYOUT ======
+        panelPrincipal.add(panelInicio, "inicio");
+        panelPrincipal.add(panelMenuUsuario, "menuUsuario");
+        panelPrincipal.add(panelRegistrar, "registrar");
+        panelPrincipal.add(panelEventos, "eventos");
+        panelPrincipal.add(panelComprar, "comprar");
+        panelPrincipal.add(panelDisponibilidad, "disponibilidad");
+        panelPrincipal.add(panelMenuOperador, "menuOperador");
+        panelPrincipal.add(panelUsuarios, "mostrarUsuarios");
+        panelPrincipal.add(panelVentas, "mostrarVentas");
+
+        add(panelPrincipal);
+        cardLayout.show(panelPrincipal, "inicio");
+    }
+
+    // ====== PANEL INICIO ======
+    private void initPanelInicio() {
         JButton btnUsuario = new JButton("Menú Usuario");
         JButton btnOperador = new JButton("Menú Operador");
         JButton btnSalir = new JButton("Salir");
@@ -66,12 +97,18 @@ public class Ventanas extends JFrame {
         panelInicio.add(btnSalir);
         panelInicio.add(Box.createVerticalGlue());
 
-        // ====== MENÚ USUARIO ======
+        btnUsuario.addActionListener(e -> cardLayout.show(panelPrincipal, "menuUsuario"));
+        btnOperador.addActionListener(e -> cardLayout.show(panelPrincipal, "menuOperador"));
+        btnSalir.addActionListener(e -> System.exit(0));
+    }
+
+ // ====== PANEL MENÚ USUARIO ======
+    private void initPanelMenuUsuario() {
         panelMenuUsuario.setLayout(new BoxLayout(panelMenuUsuario, BoxLayout.Y_AXIS));
         btnRegistrar.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnEventos.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnComprar.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnDisponibilidad.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // Se elimina btnDisponibilidad
 
         JButton btnVolverUsuario = new JButton("Volver");
         btnVolverUsuario.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -82,19 +119,44 @@ public class Ventanas extends JFrame {
         panelMenuUsuario.add(btnEventos);
         panelMenuUsuario.add(Box.createVerticalStrut(10));
         panelMenuUsuario.add(btnComprar);
-        panelMenuUsuario.add(Box.createVerticalStrut(10));
-        panelMenuUsuario.add(btnDisponibilidad);
         panelMenuUsuario.add(Box.createVerticalStrut(20));
         panelMenuUsuario.add(btnVolverUsuario);
         panelMenuUsuario.add(Box.createVerticalGlue());
 
-        // ====== PANEL REGISTRAR USUARIO ======
+        btnRegistrar.addActionListener(e -> cardLayout.show(panelPrincipal, "registrar"));
+        btnEventos.addActionListener(e -> {
+            modeloEventos.clear();
+            for (Eventos ev : sistema.getEventos()) {
+                modeloEventos.addElement(ev.getNombre() + " | " + ev.getLugar() + " | " + ev.getFecha());
+            }
+            cardLayout.show(panelPrincipal, "eventos");
+        });
+        btnComprar.addActionListener(e -> {
+            modeloEventos.clear();
+            for (Eventos ev : sistema.getEventos()) {
+                modeloEventos.addElement(ev.getNombre() + " | " + ev.getLugar() + " | " + ev.getFecha());
+            }
+            cardLayout.show(panelPrincipal, "comprar");
+        });
+        btnVolverUsuario.addActionListener(e -> cardLayout.show(panelPrincipal, "inicio"));
+    }
+
+
+    // ====== PANEL REGISTRAR USUARIO ======
+    private void initPanelRegistrar() {
+        panelRegistrar.setLayout(new BoxLayout(panelRegistrar, BoxLayout.Y_AXIS));
+
         JTextField txtNombre = new JTextField(15);
         JTextField txtEdad = new JTextField(5);
+
+        JCheckBox chkTecnologia = new JCheckBox("Tecnología");
+        JCheckBox chkDeportes = new JCheckBox("Deportes");
+        JCheckBox chkMusica = new JCheckBox("Música");
+        JCheckBox chkCiencia = new JCheckBox("Ciencia");
+
         JButton btnGuardar = new JButton("Guardar");
         JButton btnVolver1 = new JButton("Volver");
 
-        panelRegistrar.setLayout(new BoxLayout(panelRegistrar, BoxLayout.Y_AXIS));
         panelRegistrar.add(Box.createVerticalGlue());
         panelRegistrar.add(new JLabel("Nombre:"));
         txtNombre.setMaximumSize(new Dimension(200, 25));
@@ -103,58 +165,91 @@ public class Ventanas extends JFrame {
         panelRegistrar.add(new JLabel("Edad:"));
         txtEdad.setMaximumSize(new Dimension(100, 25));
         panelRegistrar.add(txtEdad);
+        panelRegistrar.add(Box.createVerticalStrut(10));
+        panelRegistrar.add(new JLabel("Áreas de interés:"));
+        panelRegistrar.add(chkTecnologia);
+        panelRegistrar.add(chkDeportes);
+        panelRegistrar.add(chkMusica);
+        panelRegistrar.add(chkCiencia);
         panelRegistrar.add(Box.createVerticalStrut(20));
         panelRegistrar.add(btnGuardar);
         panelRegistrar.add(Box.createVerticalStrut(20));
         panelRegistrar.add(btnVolver1);
         panelRegistrar.add(Box.createVerticalGlue());
 
-        // ====== PANEL EVENTOS ======
-        DefaultListModel<String> modeloEventos = new DefaultListModel<>();
-        JList<String> listaEventos = new JList<>(modeloEventos);
-        JButton btnVolver2 = new JButton("Volver");
+        // Acción Guardar
+        btnGuardar.addActionListener(e -> {
+            try {
+                String nombre = txtNombre.getText();
+                int edad = Integer.parseInt(txtEdad.getText());
+                List<String> intereses = new ArrayList<>();
+                if (chkTecnologia.isSelected()) intereses.add("Tecnología");
+                if (chkDeportes.isSelected()) intereses.add("Deportes");
+                if (chkMusica.isSelected()) intereses.add("Música");
+                if (chkCiencia.isSelected()) intereses.add("Ciencia");
+
+                sistema.registrarUsuarios(nombre, edad, intereses);
+                JOptionPane.showMessageDialog(this, "Usuario registrado con éxito!");
+                txtNombre.setText(""); txtEdad.setText("");
+                chkTecnologia.setSelected(false); chkDeportes.setSelected(false);
+                chkMusica.setSelected(false); chkCiencia.setSelected(false);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Edad inválida.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        btnVolver1.addActionListener(e -> cardLayout.show(panelPrincipal, "menuUsuario"));
+    }
+
+    // ====== PANEL MOSTRAR EVENTOS ======
+    private void initPanelEventos() {
         panelEventos.setLayout(new BorderLayout());
+        JButton btnVolver2 = new JButton("Volver");
         panelEventos.add(new JScrollPane(listaEventos), BorderLayout.CENTER);
         panelEventos.add(btnVolver2, BorderLayout.SOUTH);
+        btnVolver2.addActionListener(e -> cardLayout.show(panelPrincipal, "menuUsuario"));
+    }
 
-        // ====== PANEL COMPRAR ======
+ // ====== PANEL COMPRAR ======
+    private void initPanelComprar() {
+        panelComprar.setLayout(new BorderLayout());
         JButton btnComprarAhora = new JButton("Confirmar Compra");
         JButton btnVolver3 = new JButton("Volver");
-        panelComprar.setLayout(new BoxLayout(panelComprar, BoxLayout.Y_AXIS));
-        JLabel lblComprar = new JLabel("Seleccione un evento en 'Mostrar Eventos' primero");
-        lblComprar.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnComprarAhora.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnVolver3.setAlignmentX(Component.CENTER_ALIGNMENT);
-        panelComprar.add(Box.createVerticalGlue());
-        panelComprar.add(lblComprar);
-        panelComprar.add(Box.createVerticalStrut(10));
-        panelComprar.add(btnComprarAhora);
-        panelComprar.add(Box.createVerticalStrut(20));
-        panelComprar.add(btnVolver3);
-        panelComprar.add(Box.createVerticalGlue());
 
-        // ====== PANEL DISPONIBILIDAD ======
-        JTextField txtEventoDisp = new JTextField(15);
-        JButton btnConsultar = new JButton("Consultar");
-        JButton btnVolver4 = new JButton("Volver");
+        // Lista de eventos para seleccionar
+        JList<String> listaEventosCompra = new JList<>(modeloEventos);
+        listaEventosCompra.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        panelDisponibilidad.setLayout(new BoxLayout(panelDisponibilidad, BoxLayout.Y_AXIS));
-        panelDisponibilidad.add(Box.createVerticalGlue());
-        panelDisponibilidad.add(new JLabel("Nombre del evento:"));
-        txtEventoDisp.setMaximumSize(new Dimension(200, 25));
-        panelDisponibilidad.add(txtEventoDisp);
-        panelDisponibilidad.add(Box.createVerticalStrut(10));
-        panelDisponibilidad.add(btnConsultar);
-        panelDisponibilidad.add(Box.createVerticalStrut(20));
-        panelDisponibilidad.add(btnVolver4);
-        panelDisponibilidad.add(Box.createVerticalGlue());
+        panelComprar.add(new JScrollPane(listaEventosCompra), BorderLayout.CENTER);
 
-        // ====== MENÚ OPERADOR ======
-        JButton btnVolverOperador = new JButton("Volver");
+        JPanel panelBotones = new JPanel();
+        panelBotones.add(btnComprarAhora);
+        panelBotones.add(btnVolver3);
+        panelComprar.add(panelBotones, BorderLayout.SOUTH);
+
+        btnComprarAhora.addActionListener(e -> {
+            String usuarioNombre = JOptionPane.showInputDialog(this, "Ingrese nombre de usuario:");
+            int idx = listaEventosCompra.getSelectedIndex();
+            if (idx >= 0) {
+                Eventos ev = sistema.getEventos().get(idx);
+                String mensaje = sistema.realizarVenta(usuarioNombre, ev.getNombre());
+                JOptionPane.showMessageDialog(this, mensaje);
+            } else {
+                JOptionPane.showMessageDialog(this, "Seleccione un evento de la lista.");
+            }
+        });
+
+        btnVolver3.addActionListener(e -> cardLayout.show(panelPrincipal, "menuUsuario"));
+    }
+
+   
+    // ====== PANEL MENÚ OPERADOR ======
+    private void initPanelMenuOperador() {
         panelMenuOperador.setLayout(new BoxLayout(panelMenuOperador, BoxLayout.Y_AXIS));
         btnRegistrarEvento.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnMostrarUsuarios.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnMostrarVentas.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JButton btnVolverOperador = new JButton("Volver");
         btnVolverOperador.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         panelMenuOperador.add(Box.createVerticalGlue());
@@ -167,160 +262,45 @@ public class Ventanas extends JFrame {
         panelMenuOperador.add(btnVolverOperador);
         panelMenuOperador.add(Box.createVerticalGlue());
 
-        // ====== PANEL MOSTRAR USUARIOS ======
-        JPanel panelUsuarios = new JPanel(new BorderLayout());
-        JPanel panelFiltro = new JPanel();
-        JButton btnFiltrar = new JButton("Filtrar");
-        JButton btnVolverUsuarios = new JButton("Volver");
-        panelFiltro.add(new JLabel("Interés:"));
-        panelFiltro.add(txtFiltroInteres);
-        panelFiltro.add(btnFiltrar);
-        panelUsuarios.add(panelFiltro, BorderLayout.NORTH);
-        panelUsuarios.add(new JScrollPane(listaUsuarios), BorderLayout.CENTER);
-        panelUsuarios.add(btnVolverUsuarios, BorderLayout.SOUTH);
-
-        // ====== PANEL MOSTRAR VENTAS ======
-        JPanel panelVentas = new JPanel(new BorderLayout());
-        JButton btnVolverVentas = new JButton("Volver");
-        panelVentas.add(new JScrollPane(listaVentas), BorderLayout.CENTER);
-        panelVentas.add(btnVolverVentas, BorderLayout.SOUTH);
-
-        // ====== CARDLAYOUT ======
-        panelPrincipal.add(panelInicio, "inicio");
-        panelPrincipal.add(panelMenuUsuario, "menuUsuario");
-        panelPrincipal.add(panelRegistrar, "registrar");
-        panelPrincipal.add(panelEventos, "eventos");
-        panelPrincipal.add(panelComprar, "comprar");
-        panelPrincipal.add(panelDisponibilidad, "disponibilidad");
-        panelPrincipal.add(panelMenuOperador, "menuOperador");
-        panelPrincipal.add(panelUsuarios, "mostrarUsuarios");
-        panelPrincipal.add(panelVentas, "mostrarVentas");
-
-        add(panelPrincipal);
-
-        // ====== ACCIONES ======
-        btnUsuario.addActionListener(e -> cardLayout.show(panelPrincipal, "menuUsuario"));
-        btnOperador.addActionListener(e -> cardLayout.show(panelPrincipal, "menuOperador"));
-        btnSalir.addActionListener(e -> System.exit(0));
-
-        btnVolverUsuario.addActionListener(e -> cardLayout.show(panelPrincipal, "inicio"));
-        btnVolverOperador.addActionListener(e -> cardLayout.show(panelPrincipal, "inicio"));
-
-        btnRegistrar.addActionListener(e -> cardLayout.show(panelPrincipal, "registrar"));
-        btnEventos.addActionListener(e -> {
-            modeloEventos.clear();
-            for (Eventos ev : sistema.getEventos()) {
-                modeloEventos.addElement(ev.getNombre() + " | " + ev.getLugar() + " | " + ev.getFecha());
-            }
-            cardLayout.show(panelPrincipal, "eventos");
-        });
-        btnComprar.addActionListener(e -> cardLayout.show(panelPrincipal, "comprar"));
-        btnDisponibilidad.addActionListener(e -> cardLayout.show(panelPrincipal, "disponibilidad"));
-
-        btnVolver1.addActionListener(e -> cardLayout.show(panelPrincipal, "menuUsuario"));
-        btnVolver2.addActionListener(e -> cardLayout.show(panelPrincipal, "menuUsuario"));
-        btnVolver3.addActionListener(e -> cardLayout.show(panelPrincipal, "menuUsuario"));
-        btnVolver4.addActionListener(e -> cardLayout.show(panelPrincipal, "menuUsuario"));
-
-        // Guardar usuario
-        btnGuardar.addActionListener(e -> {
-            try {
-                String nombre = txtNombre.getText();
-                int edad = Integer.parseInt(txtEdad.getText());
-                sistema.registrarUsuarios(nombre, edad, "Tecnología,Deportes");
-                JOptionPane.showMessageDialog(this, "Usuario registrado!");
-                txtNombre.setText("");
-                txtEdad.setText("");
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Edad inválida.");
-            }
-        });
-
-        // Comprar entrada
-        btnComprarAhora.addActionListener(e -> {
-            String usuario = JOptionPane.showInputDialog(this, "Ingrese nombre de usuario:");
-            int idx = listaEventos.getSelectedIndex();
-            if (idx >= 0) {
-                Eventos ev = sistema.getEventos().get(idx);
-                sistema.realizarVenta(usuario, ev.getNombre());
-                JOptionPane.showMessageDialog(this, "Entrada comprada para: " + ev.getNombre());
-            } else {
-                JOptionPane.showMessageDialog(this, "Seleccione un evento en la lista de 'Mostrar Eventos' primero.");
-            }
-        });
-
-        // Consultar disponibilidad
-        btnConsultar.addActionListener(e -> {
-            String evento = txtEventoDisp.getText();
-            if (evento != null && !evento.trim().isEmpty()) {
-                sistema.mostrarUbicacionesDisponibles(evento);
-                JOptionPane.showMessageDialog(this, "Disponibilidad mostrada en consola.");
-            }
-        });
-
-        // Mostrar usuarios
+        btnRegistrarEvento.addActionListener(e -> JOptionPane.showMessageDialog(this, "Funcionalidad no implementada aún"));
         btnMostrarUsuarios.addActionListener(e -> {
             modeloUsuarios.clear();
             for (Usuarios u : sistema.getUsuarios().values()) {
-                modeloUsuarios.addElement("Nombre: " + u.getNombre() + " | Edad: " + u.getEdad());
+                modeloUsuarios.addElement(u.getNombre() + " | Edad: " + u.getEdad());
             }
             cardLayout.show(panelPrincipal, "mostrarUsuarios");
         });
-
-        // Filtrar usuarios
-        btnFiltrar.addActionListener(e -> {
-            String tema = txtFiltroInteres.getText();
-            modeloUsuarios.clear();
-            for (Usuarios u : sistema.getUsuarios().values()) {
-                if (u.getIntereses().contains(tema)) {
-                    modeloUsuarios.addElement("Nombre: " + u.getNombre() +
-                                              " | Edad: " + u.getEdad() +
-                                              " | Intereses: " + String.join(", ", u.getIntereses()));
-                }
-            }
-        });
-
-        btnVolverUsuarios.addActionListener(e -> cardLayout.show(panelPrincipal, "menuOperador"));
-
-        // Mostrar ventas
         btnMostrarVentas.addActionListener(e -> {
             modeloVentas.clear();
             for (Entrada en : sistema.getEntradas()) {
                 modeloVentas.addElement("Usuario: " + en.getUsuario().getNombre() +
-                                        " | Evento: " + en.getEvento().getNombre() +
-                                        " | Precio: " + en.getPrecio());
+                        " | Evento: " + en.getEvento().getNombre() +
+                        " | Precio: $" + en.getPrecio());
             }
             cardLayout.show(panelPrincipal, "mostrarVentas");
         });
-
-        btnVolverVentas.addActionListener(e -> cardLayout.show(panelPrincipal, "menuOperador"));
-
-        // Registrar evento
-        btnRegistrarEvento.addActionListener(e -> {
-            JTextField txtNombreEv = new JTextField();
-            JTextField txtLugar = new JTextField();
-            JTextField txtFecha = new JTextField();
-
-            Object[] message = {
-                "Nombre:", txtNombreEv,
-                "Lugar:", txtLugar,
-                "Fecha (dd/MM/yyyy):", txtFecha
-            };
-
-            int option = JOptionPane.showConfirmDialog(this, message, "Registrar Evento", JOptionPane.OK_CANCEL_OPTION);
-            if (option == JOptionPane.OK_OPTION) {
-                try {
-                    Date fecha = new SimpleDateFormat("dd/MM/yyyy").parse(txtFecha.getText());
-                    Operador op = new Operador("operador", sistema);
-                    op.registrarEvento(txtNombreEv.getText(), txtLugar.getText(), fecha);
-                    JOptionPane.showMessageDialog(this, "Evento registrado!");
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Fecha inválida. Use formato dd/MM/yyyy");
-                }
-            }
-        });
+        btnVolverOperador.addActionListener(e -> cardLayout.show(panelPrincipal, "inicio"));
     }
 
+    // ====== PANEL USUARIOS ======
+    private void initPanelUsuarios() {
+        panelUsuarios.setLayout(new BorderLayout());
+        JButton btnVolver5 = new JButton("Volver");
+        panelUsuarios.add(new JScrollPane(listaUsuarios), BorderLayout.CENTER);
+        panelUsuarios.add(btnVolver5, BorderLayout.SOUTH);
+        btnVolver5.addActionListener(e -> cardLayout.show(panelPrincipal, "menuOperador"));
+    }
+
+    // ====== PANEL VENTAS ======
+    private void initPanelVentas() {
+        panelVentas.setLayout(new BorderLayout());
+        JButton btnVolver6 = new JButton("Volver");
+        panelVentas.add(new JScrollPane(listaVentas), BorderLayout.CENTER);
+        panelVentas.add(btnVolver6, BorderLayout.SOUTH);
+        btnVolver6.addActionListener(e -> cardLayout.show(panelPrincipal, "menuOperador"));
+    }
+
+    // ====== MAIN ======
     public static void main(String[] args) {
         SistemaEntradas sistema = new SistemaEntradas();
         sistema.cargarDatosIniciales();
