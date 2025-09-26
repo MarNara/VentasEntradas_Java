@@ -23,3 +23,4 @@ public class Ubicacion {
     public boolean hayLugaresDisponibles() { return capacidad > 0; }
     public void ocuparLugar() { if(capacidad>0) capacidad--; }
 }
+
