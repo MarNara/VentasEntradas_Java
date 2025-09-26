@@ -1,14 +1,18 @@
 package entradas;
 
+import java.util.Date;
+
 public class Entrada {
     private Eventos evento;
     private Usuarios usuario;
     private double precio;
+    private Date fechaCompra;
 
     public Entrada(Eventos evento, Usuarios usuario, double precio) {
         this.evento = evento;
         this.usuario = usuario;
         this.precio = precio;
+        //this.fechaCompra = fechaCompra;
     }
 
     public Eventos getEvento() { return evento; }
@@ -19,4 +23,7 @@ public class Entrada {
 
     public double getPrecio() { return precio; }
     public void setPrecio(double precio) { this.precio = precio; }
+
+    public Date getFechaCompra() { return fechaCompra; }
+    public void setFechaCompra(Date fechaCompra) { this.fechaCompra = fechaCompra; }
 }
