@@ -18,7 +18,7 @@ public class Usuarios {
         }
     }
 
-    // Getters y Setters
+    // ===== Getters y Setters =====
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
 
@@ -28,7 +28,10 @@ public class Usuarios {
     public List<String> getIntereses() { return intereses; }
     public void setIntereses(List<String> intereses) { this.intereses = intereses; }
 
+    // Agregar un interés individual
     public void agregarInteres(String interes) {
-        intereses.add(interes);
+        if(!intereses.contains(interes)) {
+            intereses.add(interes);
+        }
     }
 }
