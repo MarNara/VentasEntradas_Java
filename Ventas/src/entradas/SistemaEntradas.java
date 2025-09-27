@@ -74,25 +74,24 @@ public class SistemaEntradas {
     }
 
     // ====== Realizar venta (devuelve mensaje) ======
-    public String realizarVenta(String nombreUsuario, String nombreEvento) {
+    public String realizarVenta(String nombreUsuario, String nombreEvento) throws UsuarioNoRegistradoException, EntradaNoDisponibleException, EventoNoEncontradoException {
         Usuarios usuario = usuarios.get(nombreUsuario);
         Eventos evento = buscarEvento(nombreEvento);
 
-        if (usuario == null) return "Usuario no encontrado.";
-        if (evento == null) return "Evento no encontrado.";
+        if (usuario == null) throw new UsuarioNoRegistradoException();
+        if (evento == null) throw new EventoNoEncontradoException();
 
         Ubicacion sugerida = sugerirUbicacion(usuario, evento);
-        if (sugerida != null && sugerida.hayLugaresDisponibles()) {
-            double precioBase = 100;
-            double precioFinal = precioBase * (1 + sugerida.getPrecio());
-            entradas.add(new Entrada(evento, usuario, precioFinal));
-            sugerida.ocuparLugar();
-            evento.setCapacidad(evento.getCapacidad() - 1);
-
-            return "Compra realizada en " + sugerida.getNombre() + " | Precio: $" + precioFinal;
-        } else {
-            return "No hay ubicaciones disponibles para este evento.";
+        if (sugerida == null || !sugerida.hayLugaresDisponibles()) {
+        	throw new EntradaNoDisponibleException();
         }
+        double precioBase = 100;
+        double precioFinal = precioBase * (1 + sugerida.getPrecio());
+        entradas.add(new Entrada(evento, usuario, precioFinal));
+        sugerida.ocuparLugar();
+        evento.setCapacidad(evento.getCapacidad() - 1);
+        return "Compra realizada en " + sugerida.getNombre() + " | Precio: $" + precioFinal;
+        
     }
 
     // ====== Método NUEVO: mostrar ubicaciones disponibles ======
