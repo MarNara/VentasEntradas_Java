@@ -1,16 +1,11 @@
 Nombre,Edad,Intereses
-María Pérez,25,Tecnología;Deportes
-Juan Gómez,30,Música;Arte
-Lucía Fernández,22,Deportes;Cine
-Pedro Martínez,35,Tecnología;Cine
-Ana Torres,28,Música;Deportes
-Carlos Ruiz,40,Arte;Cine
-Sofía Morales,20,Tecnología;Música
-Diego López,33,Deportes;Arte
-Valentina Díaz,27,Cine;Música
-Miguel Hernández,31,Tecnología;Deportes
-Laura Castillo,26,Arte;Música
-Fernando Rojas,38,Cine;Deportes
-Paula Vargas,24,Tecnología;Arte
-Javier Soto,29,Música;Cine
-Isabella Cruz,21,Deportes;Música
+Ana,25,tecnologia;musica
+Luis,30,deportes;ciencia
+Marta,22,tecnologia;deportes;musica
+Pedro,28,ciencia
+Sofía,35,tecnologia;deportes
+Diego,27,musica;tecnologia;ciencia
+Laura,24,deportes;musica
+Andrés,31,tecnologia;ciencia
+Camila,29,deportes;tecnologia;musica;ciencia
+Felipe,26,tecnologia;musica
