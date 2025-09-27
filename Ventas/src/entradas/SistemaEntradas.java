@@ -1,11 +1,15 @@
 package entradas;
 
 import java.util.*;
+import java.io.*;
+import java.text.SimpleDateFormat;
 
 public class SistemaEntradas {
     private Map<String, Usuarios> usuarios;
     private List<Eventos> eventos;
     private List<Entrada> entradas;
+
+    private final String CARPETA_DATA = "data";
 
     public SistemaEntradas() {
         usuarios = new HashMap<>();
@@ -13,71 +17,164 @@ public class SistemaEntradas {
         entradas = new ArrayList<>();
     }
 
-    // ====== Cargar datos iniciales ======
+    // =========================
+    // MÉTODOS BATCH
+    // =========================
     public void cargarDatosIniciales() {
-        // Usuarios
-        usuarios.put("Ana", new Usuarios("Ana", 25, List.of("Tecnología")));
-        usuarios.put("Luis", new Usuarios("Luis", 30, List.of("Deportes", "Música")));
-
-        // Eventos con categorías y ubicaciones
-        List<Ubicacion> ubicacionesJava = List.of(
-            new Ubicacion("Frontal", 20, 0.2),
-            new Ubicacion("Medio", 30, 0.0),
-            new Ubicacion("Posterior", 50, -0.1)
-        );
-        eventos.add(new Eventos("Charla Java", "Auditorio 1", new Date(), 100, "Tecnología", ubicacionesJava));
+        cargarUsuariosCSV();
+        cargarEventosCSV();
+        cargarEntradasCSV();
     }
 
-    // ====== Registrar usuario ======
+    public void guardarDatosAlSalir() {
+        guardarUsuariosCSV();
+        guardarEventosCSV();
+        guardarEntradasCSV();
+    }
+
+    // =========================
+    // CARGA DESDE CSV
+    // =========================
+    public void cargarUsuariosCSV() {
+        File archivo = new File(CARPETA_DATA + "/usuarios.csv");
+        if (!archivo.exists()) return;
+        try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
+            br.readLine(); // encabezado
+            String linea;
+            while ((linea = br.readLine()) != null) {
+                String[] campos = linea.split(",");
+                if (campos.length < 3) continue;
+                String nombre = campos[0].trim();
+                int edad = Integer.parseInt(campos[1].trim());
+                List<String> intereses = Arrays.asList(campos[2].split(";"));
+                usuarios.put(nombre, new Usuarios(nombre, edad, intereses));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    public void cargarEventosCSV() {
+        File archivo = new File(CARPETA_DATA + "/eventos.csv");
+        if (!archivo.exists()) return;
+        try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
+            br.readLine(); // encabezado
+            String linea;
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            while ((linea = br.readLine()) != null) {
+                String[] campos = linea.split(",");
+                if (campos.length < 3) continue;
+                String nombre = campos[0].trim();
+                String lugar = campos[1].trim();
+                Date fecha = sdf.parse(campos[2].trim());
+                int capacidad = campos.length > 3 ? Integer.parseInt(campos[3].trim()) : 100;
+                String categoria = campos.length > 4 ? campos[4].trim() : "General";
+
+                // 🔹 Aquí creamos ubicaciones por defecto (para que nunca queden vacías)
+                List<Ubicacion> ubicaciones = new ArrayList<>();
+                ubicaciones.add(new Ubicacion("General", 50, 0.0));
+                ubicaciones.add(new Ubicacion("VIP", 30, 0.5));
+                ubicaciones.add(new Ubicacion("Platea", 20, 0.2));
+
+                registrarEvento(nombre, lugar, fecha, capacidad, categoria, ubicaciones);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    public void cargarEntradasCSV() {
+        File archivo = new File(CARPETA_DATA + "/entradas_vendidas.csv");
+        if (!archivo.exists()) return;
+        try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
+            br.readLine(); // encabezado
+            String linea;
+            while ((linea = br.readLine()) != null) {
+                String[] campos = linea.split(",");
+                if (campos.length < 3) continue;
+                String nombreUsuario = campos[0].trim();
+                String nombreEvento = campos[1].trim();
+                double precio = Double.parseDouble(campos[2].trim());
+
+                Usuarios usuario = usuarios.get(nombreUsuario);
+                Eventos evento = buscarEvento(nombreEvento);
+
+                if (usuario != null && evento != null)
+                    entradas.add(new Entrada(evento, usuario, precio));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    // =========================
+    // GUARDAR EN CSV
+    // =========================
+    public void guardarUsuariosCSV() {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(CARPETA_DATA + "/usuarios.csv"))) {
+            pw.println("Nombre,Edad,Intereses");
+            for (Usuarios u : usuarios.values()) {
+                pw.println(u.getNombre() + "," + u.getEdad() + "," + String.join(";", u.getIntereses()));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    public void guardarEventosCSV() {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(CARPETA_DATA + "/eventos.csv"))) {
+            pw.println("Nombre,Lugar,Fecha,Capacidad,Categoria");
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            for (Eventos e : eventos) {
+                pw.println(e.getNombre() + "," + e.getLugar() + "," + sdf.format(e.getFecha()) + "," +
+                           e.getCapacidad() + "," + e.getCategoria());
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    public void guardarEntradasCSV() {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(CARPETA_DATA + "/entradas_vendidas.csv"))) {
+            pw.println("Usuario,Evento,Precio");
+            for (Entrada en : entradas) {
+                pw.println(en.getUsuario().getNombre() + "," + en.getEvento().getNombre() + "," + en.getPrecio());
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    // ====== Funciones de registro, venta, listado etc. ======
     public void registrarUsuarios(String nombre, int edad, List<String> intereses) {
-        Usuarios usuario = new Usuarios(nombre, edad, intereses);
-        usuarios.put(nombre, usuario);
+        usuarios.put(nombre, new Usuarios(nombre, edad, intereses));
     }
 
-    // ====== Registrar evento ======
     public void registrarEvento(String nombreEvento, String lugarEvento, Date fechaEvento,
                                 int capacidad, String categoria, List<Ubicacion> ubicaciones) {
-        Eventos evento = new Eventos(nombreEvento, lugarEvento, fechaEvento, capacidad, categoria, ubicaciones);
-        eventos.add(evento);
+        eventos.add(new Eventos(nombreEvento, lugarEvento, fechaEvento, capacidad, categoria, ubicaciones));
     }
 
-    // ====== Buscar evento ======
+    public void registrarEvento(String nombreEvento, String lugarEvento, String fechaStr) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            Date fecha = sdf.parse(fechaStr);
+            int capacidad = 100; 
+            String categoria = "General"; 
+            List<Ubicacion> ubicaciones = new ArrayList<>();
+            ubicaciones.add(new Ubicacion("General", 50, 0.0));
+            ubicaciones.add(new Ubicacion("VIP", 30, 0.5));
+            ubicaciones.add(new Ubicacion("Platea", 20, 0.2));
+            eventos.add(new Eventos(nombreEvento, lugarEvento, fecha, capacidad, categoria, ubicaciones));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public Eventos buscarEvento(String nombreEvento) {
-        for (Eventos e : eventos)
-            if (e.getNombre().equalsIgnoreCase(nombreEvento)) return e;
+        for (Eventos e : eventos) if (e.getNombre().equalsIgnoreCase(nombreEvento)) return e;
         return null;
     }
 
-    // ====== Sugerir eventos según intereses ======
-    public List<Eventos> sugerirEventos(Usuarios usuario) {
-        List<Eventos> sugeridos = new ArrayList<>();
-        for (Eventos ev : eventos) {
-            if (usuario.getIntereses().contains(ev.getCategoria())) {
-                sugeridos.add(ev);
-            }
-        }
-        return sugeridos;
-    }
+    public List<Eventos> getEventos() { return eventos; }
+    public Map<String, Usuarios> getUsuarios() { return usuarios; }
+    public List<Entrada> getEntradas() { return entradas; }
 
-    // ====== Sugerir ubicación automática ======
-    public Ubicacion sugerirUbicacion(Usuarios usuario, Eventos evento) {
-        List<Ubicacion> disponibles = new ArrayList<>();
-        for (Ubicacion u : evento.getUbicaciones()) {
-            if (u.hayLugaresDisponibles()) disponibles.add(u);
-        }
-        if (disponibles.isEmpty()) return null;
-
-        // Lógica simple basada en edad
-        if (usuario.getEdad() < 25) return disponibles.get(0);
-        else if (usuario.getEdad() < 50) return disponibles.get(1);
-        else return disponibles.get(disponibles.size()-1);
-    }
-
-    // ====== Realizar venta (devuelve mensaje) ======
-    public String realizarVenta(String nombreUsuario, String nombreEvento) throws UsuarioNoRegistradoException, EntradaNoDisponibleException, EventoNoEncontradoException {
+    public String realizarVenta(String nombreUsuario, String nombreEvento) 
+    		throws UsuarioNoRegistradoException, 
+    		EventoNoEncontradoException, 
+    		EntradaNoDisponibleException {
+    	
         Usuarios usuario = usuarios.get(nombreUsuario);
         Eventos evento = buscarEvento(nombreEvento);
-
         if (usuario == null) throw new UsuarioNoRegistradoException();
         if (evento == null) throw new EventoNoEncontradoException();
 
@@ -91,56 +188,14 @@ public class SistemaEntradas {
         sugerida.ocuparLugar();
         evento.setCapacidad(evento.getCapacidad() - 1);
         return "Compra realizada en " + sugerida.getNombre() + " | Precio: $" + precioFinal;
-        
     }
 
-    // ====== Método NUEVO: mostrar ubicaciones disponibles ======
-    public List<Ubicacion> mostrarUbicacionesDisponibles(String nombreEvento) {
-        Eventos evento = buscarEvento(nombreEvento);
-        if (evento == null) return new ArrayList<>();
-
+    public Ubicacion sugerirUbicacion(Usuarios usuario, Eventos evento) {
         List<Ubicacion> disponibles = new ArrayList<>();
-        for (Ubicacion u : evento.getUbicaciones()) {
-            if (u.hayLugaresDisponibles()) {
-                disponibles.add(u);
-            }
-        }
-        return disponibles;
+        for (Ubicacion u : evento.getUbicaciones()) if (u.hayLugaresDisponibles()) disponibles.add(u);
+        if (disponibles.isEmpty()) return null;
+        if (usuario.getEdad() < 25) return disponibles.get(0);
+        else if (usuario.getEdad() < 50) return disponibles.get(1);
+        else return disponibles.get(disponibles.size() - 1);
     }
-
-    // ====== Obtener listas para GUI ======
-    public List<String> listarUsuarios() {
-        List<String> lista = new ArrayList<>();
-        for (Usuarios u : usuarios.values())
-            lista.add(u.getNombre() + " | Edad: " + u.getEdad() + " | Intereses: " + String.join(", ", u.getIntereses()));
-        return lista;
-    }
-
-    public List<String> listarEventos() {
-        List<String> lista = new ArrayList<>();
-        for (Eventos e : eventos)
-            lista.add(e.getNombre() + " | " + e.getLugar() + " | " + e.getFecha() + " | Capacidad: " + e.getCapacidad());
-        return lista;
-    }
-
-    public List<String> listarVentas() {
-        List<String> lista = new ArrayList<>();
-        for (Entrada en : entradas)
-            lista.add("Usuario: " + en.getUsuario().getNombre() +
-                      " | Evento: " + en.getEvento().getNombre() +
-                      " | Precio: $" + en.getPrecio());
-        return lista;
-    }
-
-    // ====== Consultar disponibilidad simple ======
-    public String consultarDisponibilidad(String nombreEvento) {
-        Eventos evento = buscarEvento(nombreEvento);
-        if (evento == null) return "Evento no encontrado.";
-        return "Capacidad disponible: " + evento.getCapacidad();
-    }
-
-    // ====== Getters ======
-    public Map<String, Usuarios> getUsuarios() { return usuarios; }
-    public List<Eventos> getEventos() { return eventos; }
-    public List<Entrada> getEntradas() { return entradas; }
 }
