@@ -45,7 +45,15 @@ public class Ventanas {
 
         JFrame frame = new JFrame("Sistema de Ventas de Entradas");
         frame.setSize(700, 500);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        frame.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                sistema.guardarDatosAlSalir();  // <-- Aquí llamas al método
+                frame.dispose();
+                System.exit(0);
+            }
+        });
         frame.setLocationRelativeTo(null);
 
         initPanelInicio();
@@ -107,7 +115,10 @@ public class Ventanas {
 
         btnUsuario.addActionListener(e -> cardLayout.show(panelPrincipal, "menuUsuario"));
         btnOperador.addActionListener(e -> cardLayout.show(panelPrincipal, "menuOperador"));
-        btnSalir.addActionListener(e -> System.exit(0));
+        btnSalir.addActionListener(e -> {
+            sistema.guardarDatosAlSalir();
+            System.exit(0);
+        });
     }
 
     // =========================
