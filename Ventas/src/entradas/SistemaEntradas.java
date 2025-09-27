@@ -79,12 +79,16 @@ public class SistemaEntradas {
     public void cargarEntradasCSV() {
         File archivo = new File(CARPETA_DATA + "/entradas_vendidas.csv");
         if (!archivo.exists()) return;
+
         try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
             br.readLine(); // encabezado
             String linea;
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+
             while ((linea = br.readLine()) != null) {
                 String[] campos = linea.split(",");
                 if (campos.length < 3) continue;
+
                 String nombreUsuario = campos[0].trim();
                 String nombreEvento = campos[1].trim();
                 double precio = Double.parseDouble(campos[2].trim());
@@ -92,8 +96,15 @@ public class SistemaEntradas {
                 Usuarios usuario = usuarios.get(nombreUsuario);
                 Eventos evento = buscarEvento(nombreEvento);
 
+                Date fechaCompra;
+                if (campos.length > 3) {
+                    fechaCompra = sdf.parse(campos[3].trim());
+                } else {
+                    fechaCompra = new Date(); // fecha actual si no está en CSV
+                }
+
                 if (usuario != null && evento != null)
-                    entradas.add(new Entrada(evento, usuario, precio));
+                    entradas.add(new Entrada(evento, usuario, precio, fechaCompra));
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
@@ -121,9 +132,14 @@ public class SistemaEntradas {
     //guardar nuevas entradas en csv de entradas_vendidas
     public void guardarEntradasCSV() {
         try (PrintWriter pw = new PrintWriter(new FileWriter(CARPETA_DATA + "/entradas_vendidas.csv"))) {
-            pw.println("Usuario,Evento,Precio");
+            pw.println("Usuario,Evento,Precio,FechaCompra"); // <-- agregamos encabezado de fecha
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            
             for (Entrada en : entradas) {
-                pw.println(en.getUsuario().getNombre() + "," + en.getEvento().getNombre() + "," + en.getPrecio());
+                pw.println(en.getUsuario().getNombre() + "," +
+                           en.getEvento().getNombre() + "," +
+                           en.getPrecio() + "," +
+                           sdf.format(en.getFechaCompra())); // <-- agregamos fecha
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
@@ -179,7 +195,7 @@ public class SistemaEntradas {
         }
         double precioBase = 100;
         double precioFinal = precioBase * (1 + sugerida.getPrecio());
-        entradas.add(new Entrada(evento, usuario, precioFinal));
+        entradas.add(new Entrada(evento, usuario, precioFinal, new Date()));
         sugerida.ocuparLugar();
         evento.setCapacidad(evento.getCapacidad() - 1);
         return "Compra realizada en " + sugerida.getNombre() + " | Precio: $" + precioFinal;

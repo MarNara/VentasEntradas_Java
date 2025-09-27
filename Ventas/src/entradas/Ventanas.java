@@ -339,7 +339,8 @@ public class Ventanas {
 
         Dimension botonGrande = new Dimension(240, 50);
         Font fuenteGrande = new Font("Arial", Font.BOLD, 18);
-        for (JButton boton : new JButton[]{btnRegistrarEvento, btnMostrarUsuarios, btnMostrarVentas,btnEliminarEvento,btnModificarEvento, btnVolver}) {
+        for (JButton boton : new JButton[]{btnRegistrarEvento, btnMostrarUsuarios, btnMostrarVentas,
+                btnEliminarEvento, btnModificarEvento, btnVolver}) {
             boton.setMaximumSize(botonGrande);
             boton.setFont(fuenteGrande);
         }
@@ -397,29 +398,32 @@ public class Ventanas {
 
         btnMostrarVentas.addActionListener(e -> {
             modeloVentas.clear();
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             for (Entrada en : sistema.getEntradas()) {
+                String fechaStr = sdf.format(en.getFechaCompra());
                 modeloVentas.addElement("Usuario: " + en.getUsuario().getNombre() +
                         " | Evento: " + en.getEvento().getNombre() +
-                        " | Precio: $" + en.getPrecio());
+                        " | Precio: $" + en.getPrecio() +
+                        " | Fecha Compra: " + fechaStr);
             }
             cardLayout.show(panelPrincipal, "mostrarVentas");
         });
-        //accion para eliminar un evento
+
+        // Acción para eliminar un evento
         btnEliminarEvento.addActionListener(e -> {
             if (sistema.getEventos().isEmpty()) {
                 JOptionPane.showMessageDialog(null, "No se ha registrado ningún evento.");
                 return;
             }
 
-            // Crear un arreglo con los nombres de los eventos
             String[] eventosArray = sistema.getEventos().stream()
                                           .map(Eventos::getNombre)
                                           .toArray(String[]::new);
 
             JComboBox<String> comboEventos = new JComboBox<>(eventosArray);
-            comboEventos.setSelectedIndex(-1); // <- No hay selección inicial
+            comboEventos.setSelectedIndex(-1);
 
-            int opcion = JOptionPane.showConfirmDialog(null, comboEventos, 
+            int opcion = JOptionPane.showConfirmDialog(null, comboEventos,
                             "Seleccione el evento a eliminar", JOptionPane.OK_CANCEL_OPTION);
 
             if (opcion != JOptionPane.OK_OPTION || comboEventos.getSelectedIndex() == -1) {
@@ -436,70 +440,7 @@ public class Ventanas {
             }
         });
 
-
-        //falta arreglar que sucede cuando se presiona ok sin haber precionado un evento para eliminar
-        //agregar lo que hace la parte de modificar un evento
-        btnModificarEvento.addActionListener(e -> {
-            if (sistema.getEventos().isEmpty()) {
-                JOptionPane.showMessageDialog(null, "No se ha registrado ningún evento.");
-                return;
-            }
-
-            // Crear combo con nombres de eventos
-            String[] eventosArray = sistema.getEventos().stream()
-                                          .map(Eventos::getNombre)
-                                          .toArray(String[]::new);
-            JComboBox<String> comboEventos = new JComboBox<>(eventosArray);
-            comboEventos.setSelectedIndex(-1); // nada seleccionado al inicio
-
-            int opcion = JOptionPane.showConfirmDialog(null, comboEventos,
-                            "Seleccione el evento a modificar", JOptionPane.OK_CANCEL_OPTION);
-
-            if (opcion != JOptionPane.OK_OPTION || comboEventos.getSelectedIndex() == -1) {
-                JOptionPane.showMessageDialog(null, "No se ha modificado ningún evento.");
-                return;
-            }
-
-            Eventos evento = sistema.getEventos().get(comboEventos.getSelectedIndex());
-
-            JTextField txtNombre = new JTextField(evento.getNombre());
-            JTextField txtLugar = new JTextField(evento.getLugar());
-            JTextField txtFecha = new JTextField(new SimpleDateFormat("dd/MM/yyyy").format(evento.getFecha()));
-
-            JPanel panel = new JPanel(new GridLayout(0, 1));
-            panel.add(new JLabel("Nombre:"));
-            panel.add(txtNombre);
-            panel.add(new JLabel("Lugar:"));
-            panel.add(txtLugar);
-            panel.add(new JLabel("Fecha (dd/MM/yyyy):"));
-            panel.add(txtFecha);
-
-            int resultado = JOptionPane.showConfirmDialog(null, panel, "Modificar Evento",
-                            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-            if (resultado == JOptionPane.OK_OPTION) {
-                try {
-                    String nombreNuevo = txtNombre.getText().trim();
-                    String lugarNuevo = txtLugar.getText().trim();
-                    Date fechaNueva = new SimpleDateFormat("dd/MM/yyyy").parse(txtFecha.getText().trim());
-
-                    // Modificar directamente en el objeto existente
-                    evento.setNombre(nombreNuevo);
-                    evento.setLugar(lugarNuevo);
-                    evento.setFecha(fechaNueva);
-
-                    JOptionPane.showMessageDialog(null, "Evento modificado con éxito.");
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Error al modificar fecha: " + ex.getMessage(),
-                                                  "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            } else {
-                JOptionPane.showMessageDialog(null, "No se ha modificado ningún evento.");
-            }
-        });
-
-
-
+        // Botón volver al inicio
         btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "inicio"));
     }
 
