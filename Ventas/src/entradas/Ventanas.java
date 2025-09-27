@@ -1,4 +1,4 @@
-package entradas;
+/*package entradas;
 
 import javax.swing.*;
 import java.awt.*;
@@ -663,3 +663,4 @@ public class Ventanas {
         btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "menuOperador"));
     }
 }
+*/

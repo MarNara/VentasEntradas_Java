@@ -12,7 +12,7 @@ public class MainVentas {
         sistema.cargarEntradasCSV();
 
         SwingUtilities.invokeLater(() -> {
-            new Ventanas(sistema);
+            new VentanaPrincipal(sistema);
         });
     }
 }
