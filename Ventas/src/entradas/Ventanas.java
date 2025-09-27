@@ -4,6 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Ventanas {
     private final SistemaEntradas sistema;
@@ -437,6 +439,65 @@ public class Ventanas {
 
         //falta arreglar que sucede cuando se presiona ok sin haber precionado un evento para eliminar
         //agregar lo que hace la parte de modificar un evento
+        btnModificarEvento.addActionListener(e -> {
+            if (sistema.getEventos().isEmpty()) {
+                JOptionPane.showMessageDialog(null, "No se ha registrado ningún evento.");
+                return;
+            }
+
+            // Crear combo con nombres de eventos
+            String[] eventosArray = sistema.getEventos().stream()
+                                          .map(Eventos::getNombre)
+                                          .toArray(String[]::new);
+            JComboBox<String> comboEventos = new JComboBox<>(eventosArray);
+            comboEventos.setSelectedIndex(-1); // nada seleccionado al inicio
+
+            int opcion = JOptionPane.showConfirmDialog(null, comboEventos,
+                            "Seleccione el evento a modificar", JOptionPane.OK_CANCEL_OPTION);
+
+            if (opcion != JOptionPane.OK_OPTION || comboEventos.getSelectedIndex() == -1) {
+                JOptionPane.showMessageDialog(null, "No se ha modificado ningún evento.");
+                return;
+            }
+
+            Eventos evento = sistema.getEventos().get(comboEventos.getSelectedIndex());
+
+            JTextField txtNombre = new JTextField(evento.getNombre());
+            JTextField txtLugar = new JTextField(evento.getLugar());
+            JTextField txtFecha = new JTextField(new SimpleDateFormat("dd/MM/yyyy").format(evento.getFecha()));
+
+            JPanel panel = new JPanel(new GridLayout(0, 1));
+            panel.add(new JLabel("Nombre:"));
+            panel.add(txtNombre);
+            panel.add(new JLabel("Lugar:"));
+            panel.add(txtLugar);
+            panel.add(new JLabel("Fecha (dd/MM/yyyy):"));
+            panel.add(txtFecha);
+
+            int resultado = JOptionPane.showConfirmDialog(null, panel, "Modificar Evento",
+                            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+            if (resultado == JOptionPane.OK_OPTION) {
+                try {
+                    String nombreNuevo = txtNombre.getText().trim();
+                    String lugarNuevo = txtLugar.getText().trim();
+                    Date fechaNueva = new SimpleDateFormat("dd/MM/yyyy").parse(txtFecha.getText().trim());
+
+                    // Modificar directamente en el objeto existente
+                    evento.setNombre(nombreNuevo);
+                    evento.setLugar(lugarNuevo);
+                    evento.setFecha(fechaNueva);
+
+                    JOptionPane.showMessageDialog(null, "Evento modificado con éxito.");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "Error al modificar fecha: " + ex.getMessage(),
+                                                  "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "No se ha modificado ningún evento.");
+            }
+        });
+
 
 
         btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "inicio"));

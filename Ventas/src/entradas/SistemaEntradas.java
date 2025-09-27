@@ -194,14 +194,15 @@ public class SistemaEntradas {
         else return disponibles.get(disponibles.size() - 1);
     }
     
-    //eliminar eventos
+    //eliminar eventos: se elimina el evento por el nombre y desaparecen todos los datos relacionados a este evento.
     public void eliminarEvento(String nombreEvento) throws EventoNoEncontradoException {
         boolean eliminado = eventos.removeIf(ev -> ev.getNombre().equalsIgnoreCase(nombreEvento));
 
         if (!eliminado) {
-            // Lanza la excepción con el mensaje por defecto
+            //hace la excepcion con el mensaje por defecto
             throw new EventoNoEncontradoException();
         }
     }
+    
 
 }
