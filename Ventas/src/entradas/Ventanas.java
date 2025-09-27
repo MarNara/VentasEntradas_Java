@@ -315,66 +315,6 @@ public class Ventanas {
         JOptionPane.showMessageDialog(null, mensaje, "Compra realizada", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // =========================
-    // MENÚ OPERADOR
-    // =========================
-    /**
-    private void initPanelMenuOperador() {
-        panelMenuOperador.setLayout(new BoxLayout(panelMenuOperador, BoxLayout.Y_AXIS));
-        for (JButton boton : new JButton[]{btnRegistrarEvento, btnEliminarEvento, btnModificarEvento, btnMostrarUsuarios, btnMostrarVentas}) {
-            boton.setAlignmentX(Component.CENTER_ALIGNMENT);
-            boton.setMaximumSize(new Dimension(240, 50));
-            boton.setFont(new Font("Arial", Font.BOLD, 18));
-            panelMenuOperador.add(Box.createVerticalStrut(10));
-            panelMenuOperador.add(boton);
-        }
-
-        JButton btnVolver = new JButton("Volver");
-        btnVolver.setAlignmentX(Component.CENTER_ALIGNMENT);
-        panelMenuOperador.add(Box.createVerticalStrut(20));
-        panelMenuOperador.add(btnVolver);
-
-        btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "inicio"));
-
-        btnRegistrarEvento.addActionListener(e -> registrarEvento());
-        btnEliminarEvento.addActionListener(e -> eliminarEvento());
-        btnModificarEvento.addActionListener(e -> modificarEvento());
-        btnMostrarUsuarios.addActionListener(e -> {
-            modeloUsuarios.clear();
-            for (Usuarios u : sistema.getUsuarios().values()) {
-                modeloUsuarios.addElement(u.getRut() + " | " + u.getNombre() + " | " + u.getEdad() + " | " + u.getIntereses());
-            }
-            cardLayout.show(panelPrincipal, "mostrarUsuarios");
-        });
-        btnMostrarVentas.addActionListener(e -> {
-            modeloVentas.clear();
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-            for (Entrada v : sistema.getEntradas()) {
-                String texto = v.getUsuario().getRut() + " | " + v.getUsuario().getNombre() + 
-                               " | " + v.getEvento().getNombre() + 
-                               " | $" + v.getPrecio() + 
-                               " | " + sdf.format(v.getFechaCompra());
-                modeloVentas.addElement(texto);
-            }
-            cardLayout.show(panelPrincipal, "mostrarVentas");
-        });
-
-    }
-    **/
-
-    // =========================
-    // PANEL USUARIOS
-    // =========================
-    /*
-    private void initPanelUsuarios() {
-        panelUsuarios.setLayout(new BorderLayout());
-        JButton btnVolver = new JButton("Volver");
-        panelUsuarios.add(new JScrollPane(listaUsuarios), BorderLayout.CENTER);
-        panelUsuarios.add(btnVolver, BorderLayout.SOUTH);
-        btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "menuOperador"));
-    }
-    */
-    
  // =========================
     // MENÚ OPERADOR
     // =========================
@@ -647,34 +587,69 @@ public class Ventanas {
 
         btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "inicio"));
     }
-
  // PANEL USUARIOS (con filtro)
-    // =========================
     private void initPanelUsuarios() {
-        panelUsuarios.setLayout(new BorderLayout());
+    	panelUsuarios.setLayout(new BorderLayout());
 
-        // Barra superior con filtro
-        JPanel panelFiltro = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JTextField txtFiltro = new JTextField(15);
-        JButton btnFiltrar = new JButton("Filtrar");
+    	// Barra superior con filtro
+    	JPanel panelFiltro = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    	JTextField txtFiltro = new JTextField(15);
+    	JButton btnFiltrar = new JButton("Filtrar");
 
-        panelFiltro.add(new JLabel("Interés:"));
-        panelFiltro.add(txtFiltro);
-        panelFiltro.add(btnFiltrar);
+    	panelFiltro.add(new JLabel("Interés:"));
+    	panelFiltro.add(txtFiltro);
+    	panelFiltro.add(btnFiltrar);
 
-        JScrollPane scrollUsuarios = new JScrollPane(listaUsuarios);
-        JButton btnVolver = new JButton("Volver");
+	    JScrollPane scrollUsuarios = new JScrollPane(listaUsuarios);
+	    JButton btnVolver = new JButton("Volver");
+	
+	    panelUsuarios.add(panelFiltro, BorderLayout.NORTH);
+	    panelUsuarios.add(scrollUsuarios, BorderLayout.CENTER);
+	    panelUsuarios.add(btnVolver, BorderLayout.SOUTH);
 
-        panelUsuarios.add(panelFiltro, BorderLayout.NORTH);
-        panelUsuarios.add(scrollUsuarios, BorderLayout.CENTER);
-        panelUsuarios.add(btnVolver, BorderLayout.SOUTH);
+	    // Acción del botón Filtrar
+	    btnFiltrar.addActionListener(e -> {
+	    	String filtro = txtFiltro.getText().trim();
+	    	actualizarListaUsuarios(filtro);
+	    });
 
-        btnFiltrar.addActionListener(e -> {
-            String filtro = txtFiltro.getText().trim();
-            actualizarListaUsuarios(filtro);
-        });
+	    // Acción del botón Volver
+	    btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "menuOperador"));
 
-        btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "menuOperador"));
+	    // Inicializar lista vacía al cargar
+	    actualizarListaUsuarios("");
+    }
+
+    // Método para actualizar lista de usuarios con filtro
+    private void actualizarListaUsuarios(String filtro) {
+    	modeloUsuarios.clear();
+
+    	if (sistema.getUsuarios() == null) return; // Evita null pointer
+
+    	// Normalizamos filtro: quitar acentos y pasar a minúscula
+    	String filtroNormalizado = normalizarTexto(filtro);
+
+    	for (Usuarios u : sistema.getUsuarios().values()) {
+    		boolean coincide = filtroNormalizado.isEmpty() || 
+    				u.getIntereses().stream()
+    				.map(this::normalizarTexto)   // Normaliza cada interés
+    				.anyMatch(i -> i.equals(filtroNormalizado));
+
+    		if (coincide) {
+    			modeloUsuarios.addElement("Nombre: " + u.getNombre() +
+    					" | Edad: " + u.getEdad() +
+    					" | Intereses: " + String.join(", ", u.getIntereses()));
+    		}
+    	}
+    }
+
+ 
+    // Método auxiliar para normalizar texto (quita acentos y pasa a minúsculas)
+    private String normalizarTexto(String texto) {
+    	if (texto == null) return "";
+    	String temp = java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD);
+    	temp = temp.replaceAll("\\p{M}", ""); // Quita diacríticos
+    	return temp.toLowerCase();
     }
 
     // =========================
@@ -686,115 +661,5 @@ public class Ventanas {
         panelVentas.add(new JScrollPane(listaVentas), BorderLayout.CENTER);
         panelVentas.add(btnVolver, BorderLayout.SOUTH);
         btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "menuOperador"));
-    }
-
-    // =========================
-    // MÉTODOS OPERADOR
-    // =========================
-    /**
-    private void registrarEvento() {
-        JTextField txtNombre = new JTextField();
-        JTextField txtLugar = new JTextField();
-        JTextField txtFecha = new JTextField();
-
-        Object[] campos = {
-            "Nombre:", txtNombre,
-            "Lugar:", txtLugar,
-            "Fecha (dd/MM/yyyy):", txtFecha
-        };
-
-        int opcion = JOptionPane.showConfirmDialog(null, campos, "Registrar Evento", JOptionPane.OK_CANCEL_OPTION);
-        if (opcion == JOptionPane.OK_OPTION) {
-            String nombre = txtNombre.getText().trim();
-            String lugar = txtLugar.getText().trim();
-            String fechaStr = txtFecha.getText().trim();
-
-            if (nombre.isEmpty() || lugar.isEmpty() || fechaStr.isEmpty()) {
-                JOptionPane.showMessageDialog(null, "Todos los campos son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // Pasamos el String directamente al método sobrecargado
-            sistema.registrarEvento(nombre, lugar, fechaStr);
-
-            JOptionPane.showMessageDialog(null, "Evento registrado con éxito!");
-        }
-    }
-
-
-    private void eliminarEvento() {
-        if (sistema.getEventos().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "No hay eventos para eliminar.");
-            return;
-        }
-        String[] nombres = sistema.getEventos().stream().map(Eventos::getNombre).toArray(String[]::new);
-        JComboBox<String> combo = new JComboBox<>(nombres);
-        int opcion = JOptionPane.showConfirmDialog(null, combo, "Seleccione evento a eliminar", JOptionPane.OK_CANCEL_OPTION);
-        if (opcion == JOptionPane.OK_OPTION && combo.getSelectedIndex() >= 0) {
-            try {
-                sistema.eliminarEvento((String) combo.getSelectedItem());
-                JOptionPane.showMessageDialog(null, "Evento eliminado!");
-            } catch (EventoNoEncontradoException ex) {
-                JOptionPane.showMessageDialog(null, "Error: No se encontró el evento.");
-            }
-        }
-
-    }
-
-    private void modificarEvento() {
-        if (sistema.getEventos().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "No hay eventos para modificar.");
-            return;
-        }
-        String[] nombres = sistema.getEventos().stream().map(Eventos::getNombre).toArray(String[]::new);
-        JComboBox<String> combo = new JComboBox<>(nombres);
-        int opcion = JOptionPane.showConfirmDialog(null, combo, "Seleccione evento a modificar", JOptionPane.OK_CANCEL_OPTION);
-        if (opcion == JOptionPane.OK_OPTION && combo.getSelectedIndex() >= 0) {
-            Eventos ev = sistema.getEventos().get(combo.getSelectedIndex());
-
-            JTextField txtNombre = new JTextField(ev.getNombre());
-            JTextField txtLugar = new JTextField(ev.getLugar());
-            JTextField txtFecha = new JTextField(new SimpleDateFormat("dd/MM/yyyy").format(ev.getFecha()));
-
-            Object[] campos = {
-                "Nombre:", txtNombre,
-                "Lugar:", txtLugar,
-                "Fecha (dd/MM/yyyy):", txtFecha
-            };
-
-            int op = JOptionPane.showConfirmDialog(null, campos, "Modificar Evento", JOptionPane.OK_CANCEL_OPTION);
-            if (op == JOptionPane.OK_OPTION) {
-                try {
-                    String nombreNuevo = txtNombre.getText().trim();
-                    String lugarNuevo = txtLugar.getText().trim();
-
-                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-                    sdf.setLenient(false);
-                    Date fechaNueva = sdf.parse(txtFecha.getText().trim());
-
-                    ev.setNombre(nombreNuevo);
-                    ev.setLugar(lugarNuevo);
-                    ev.setFecha(fechaNueva);
-
-                    JOptionPane.showMessageDialog(null, "Evento modificado con éxito!");
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Fecha inválida.", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-
-        }
-    }
-**/
-    private void actualizarListaUsuarios(String filtro) {
-        modeloUsuarios.clear();
-        for (Usuarios u : sistema.getUsuarios().values()) {
-            boolean coincide = filtro.isEmpty() ||
-                    u.getIntereses().stream().anyMatch(i -> i.equalsIgnoreCase(filtro));
-            if (coincide) {
-                modeloUsuarios.addElement("Nombre: " + u.getNombre() +
-                        " | Edad: " + u.getEdad() +
-                        " | Intereses: " + String.join(", ", u.getIntereses()));
-            }
-        }
     }
 }
