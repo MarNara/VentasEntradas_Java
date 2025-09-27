@@ -11,6 +11,16 @@ public class SistemaEntradas {
 
     private final String CARPETA_DATA = "data";
 
+    
+    public Usuarios buscarUsuario(String rut) {
+        return usuarios.get(rut);
+    }
+    
+    public void registrarUsuariosConRut(String rut, String nombre, int edad, List<String> intereses) 
+    {
+        usuarios.put(rut, new Usuarios(rut, nombre, edad, intereses));
+    }
+
     public SistemaEntradas() {
         usuarios = new HashMap<>();
         eventos = new ArrayList<>();
@@ -40,14 +50,16 @@ public class SistemaEntradas {
             String linea;
             while ((linea = br.readLine()) != null) {
                 String[] campos = linea.split(",");
-                if (campos.length < 3) continue;
-                String nombre = campos[0].trim();
-                int edad = Integer.parseInt(campos[1].trim());
-                List<String> intereses = Arrays.asList(campos[2].split(";"));
-                usuarios.put(nombre, new Usuarios(nombre, edad, intereses));
+                if (campos.length < 4) continue;
+                String rut = campos[0].trim();
+                String nombre = campos[1].trim();
+                int edad = Integer.parseInt(campos[2].trim());
+                List<String> intereses = Arrays.asList(campos[3].split(";"));
+                usuarios.put(rut, new Usuarios(rut,nombre, edad, intereses));
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
+
   //cargar eventos desde el csv
     public void cargarEventosCSV() {
         File archivo = new File(CARPETA_DATA + "/eventos.csv");
@@ -112,12 +124,15 @@ public class SistemaEntradas {
     //guardar nuevos usuarios en csv de usuarios
     public void guardarUsuariosCSV() {
         try (PrintWriter pw = new PrintWriter(new FileWriter(CARPETA_DATA + "/usuarios.csv"))) {
-            pw.println("Nombre,Edad,Intereses");
-            for (Usuarios u : usuarios.values()) {
-                pw.println(u.getNombre() + "," + u.getEdad() + "," + String.join(";", u.getIntereses()));
+            pw.println("RUT,Nombre,Edad,Intereses");
+            for (Map.Entry<String, Usuarios> entry : usuarios.entrySet()) {
+                String rut = entry.getKey();
+                Usuarios u = entry.getValue();
+                pw.println(rut + "," + u.getNombre() + "," + u.getEdad() + "," + String.join(";", u.getIntereses()));
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
+
     //guardar nuevos eventos en csv de eventos
     public void guardarEventosCSV() {
         try (PrintWriter pw = new PrintWriter(new FileWriter(CARPETA_DATA + "/eventos.csv"))) {
@@ -145,9 +160,14 @@ public class SistemaEntradas {
     }
 
     // ====== Funciones de registro, venta, listado etc. ======
-    public void registrarUsuarios(String nombre, int edad, List<String> intereses) {
-        usuarios.put(nombre, new Usuarios(nombre, edad, intereses));
+    public void registrarUsuarios(String rut, String nombre, int edad, List<String> intereses) 
+            throws IllegalArgumentException {
+        if (usuarios.containsKey(rut)) {
+            throw new IllegalArgumentException("Ya existe un usuario con este RUT.");
+        }
+        usuarios.put(rut, new Usuarios(rut, nombre, edad, intereses));
     }
+
 
     public void registrarEvento(String nombreEvento, String lugarEvento, Date fechaEvento,
                                 int capacidad, String categoria, List<Ubicacion> ubicaciones) {
@@ -178,7 +198,7 @@ public class SistemaEntradas {
     public List<Eventos> getEventos() { return eventos; }
     public Map<String, Usuarios> getUsuarios() { return usuarios; }
     public List<Entrada> getEntradas() { return entradas; }
-
+/**
     public String realizarVenta(String nombreUsuario, String nombreEvento) 
     		throws UsuarioNoRegistradoException, 
     		EventoNoEncontradoException, 
@@ -200,7 +220,28 @@ public class SistemaEntradas {
         evento.setCapacidad(evento.getCapacidad() - 1);
         return "Compra realizada en " + sugerida.getNombre() + " | Precio: $" + precioFinal;
     }
+**/
+    public String realizarVenta(String rutUsuario, String nombreEvento) 
+            throws UsuarioNoRegistradoException, 
+                   EventoNoEncontradoException, 
+                   EntradaNoDisponibleException {
 
+        Usuarios usuario = buscarUsuario(rutUsuario); // Cambio: buscar por RUT
+        Eventos evento = buscarEvento(nombreEvento);
+        if (usuario == null) throw new UsuarioNoRegistradoException();
+        if (evento == null) throw new EventoNoEncontradoException();
+
+        Ubicacion sugerida = sugerirUbicacion(usuario, evento);
+        if (sugerida == null || !sugerida.hayLugaresDisponibles()) {
+            throw new EntradaNoDisponibleException();
+        }
+        double precioBase = 100;
+        double precioFinal = precioBase * (1 + sugerida.getPrecio());
+        entradas.add(new Entrada(evento, usuario, precioFinal, new Date())); // fechaCompra agregada
+        sugerida.ocuparLugar();
+        evento.setCapacidad(evento.getCapacidad() - 1);
+        return "Compra realizada en " + sugerida.getNombre() + " | Precio: $" + precioFinal;
+    }
     public Ubicacion sugerirUbicacion(Usuarios usuario, Eventos evento) {
         List<Ubicacion> disponibles = new ArrayList<>();
         for (Ubicacion u : evento.getUbicaciones()) if (u.hayLugaresDisponibles()) disponibles.add(u);
@@ -220,5 +261,4 @@ public class SistemaEntradas {
         }
     }
     
-
 }

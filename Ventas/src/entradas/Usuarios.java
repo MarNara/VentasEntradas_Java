@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Usuarios {
+	private String rut;
     private String nombre;
     private int edad;
     private List<String> intereses;
 
-    public Usuarios(String nombre, int edad, List<String> intereses) {
-        this.nombre = nombre;
+    public Usuarios(String rut, String nombre, int edad, List<String> intereses) {
+        this.rut = rut;
+    	this.nombre = nombre;
         this.edad = edad;
         if (intereses == null) {
             this.intereses = new ArrayList<>();
@@ -19,6 +21,10 @@ public class Usuarios {
     }
 
     // ===== Getters y Setters =====
+    public String getRut() { return rut; }
+    public void setRut(String rut) { this.rut = rut; }
+
+    
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
 

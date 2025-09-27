@@ -8,11 +8,11 @@ public class Entrada {
     private double precio;
     private Date fechaCompra;
 
-    public Entrada(Eventos evento, Usuarios usuario, double precio) {
+    public Entrada(Eventos evento, Usuarios usuario, double precio, Date fechaCompra) {
         this.evento = evento;
         this.usuario = usuario;
         this.precio = precio;
-        //this.fechaCompra = fechaCompra;
+        this.fechaCompra = fechaCompra;
     }
 
     public Eventos getEvento() { return evento; }
@@ -26,4 +26,5 @@ public class Entrada {
 
     public Date getFechaCompra() { return fechaCompra; }
     public void setFechaCompra(Date fechaCompra) { this.fechaCompra = fechaCompra; }
+
 }

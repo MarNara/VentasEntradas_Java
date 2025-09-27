@@ -53,7 +53,7 @@ public class Ventanas {
         frame.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
-                sistema.guardarDatosAlSalir();  // <-- Aquí llamas al método
+                sistema.guardarDatosAlSalir();
                 frame.dispose();
                 System.exit(0);
             }
@@ -81,7 +81,6 @@ public class Ventanas {
 
         frame.add(panelPrincipal);
         cardLayout.show(panelPrincipal, "inicio");
-
         frame.setVisible(true);
     }
 
@@ -168,11 +167,12 @@ public class Ventanas {
     }
 
     // =========================
-    // REGISTRAR USUARIO
+    // REGISTRAR USUARIO (con RUT)
     // =========================
     private void initPanelRegistrar() {
         panelRegistrar.setLayout(new BoxLayout(panelRegistrar, BoxLayout.Y_AXIS));
 
+        JTextField txtRut = new JTextField(15);
         JTextField txtNombre = new JTextField(15);
         JTextField txtEdad = new JTextField(5);
 
@@ -185,20 +185,28 @@ public class Ventanas {
         JButton btnVolver = new JButton("Volver");
 
         panelRegistrar.add(Box.createVerticalGlue());
+        panelRegistrar.add(new JLabel("RUT:"));
+        txtRut.setMaximumSize(new Dimension(200, 25));
+        panelRegistrar.add(txtRut);
+        panelRegistrar.add(Box.createVerticalStrut(10));
+
         panelRegistrar.add(new JLabel("Nombre:"));
         txtNombre.setMaximumSize(new Dimension(200, 25));
         panelRegistrar.add(txtNombre);
         panelRegistrar.add(Box.createVerticalStrut(10));
+
         panelRegistrar.add(new JLabel("Edad:"));
         txtEdad.setMaximumSize(new Dimension(100, 25));
         panelRegistrar.add(txtEdad);
         panelRegistrar.add(Box.createVerticalStrut(10));
+
         panelRegistrar.add(new JLabel("Áreas de interés:"));
         panelRegistrar.add(chkTecnologia);
         panelRegistrar.add(chkDeportes);
         panelRegistrar.add(chkMusica);
         panelRegistrar.add(chkCiencia);
         panelRegistrar.add(Box.createVerticalStrut(20));
+
         btnGuardar.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnVolver.setAlignmentX(Component.CENTER_ALIGNMENT);
         panelRegistrar.add(btnGuardar);
@@ -208,22 +216,38 @@ public class Ventanas {
 
         btnGuardar.addActionListener(e -> {
             try {
-                String nombre = txtNombre.getText();
-                int edad = Integer.parseInt(txtEdad.getText());
+                String rut = txtRut.getText().trim();
+                String nombre = txtNombre.getText().trim();
+                int edad = Integer.parseInt(txtEdad.getText().trim());
+
+                if (rut.isEmpty() || nombre.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "RUT y nombre son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (sistema.getUsuarios().containsKey(rut)) {
+                    JOptionPane.showMessageDialog(null, "Ya existe un usuario con este RUT.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
                 List<String> intereses = new ArrayList<>();
                 if (chkTecnologia.isSelected()) intereses.add("Tecnología");
                 if (chkDeportes.isSelected()) intereses.add("Deportes");
                 if (chkMusica.isSelected()) intereses.add("Música");
                 if (chkCiencia.isSelected()) intereses.add("Ciencia");
 
-                sistema.registrarUsuarios(nombre, edad, intereses);
+                sistema.registrarUsuariosConRut(rut, nombre, edad, intereses);
+
                 JOptionPane.showMessageDialog(null, "Usuario registrado con éxito!");
+
+                txtRut.setText("");
                 txtNombre.setText("");
                 txtEdad.setText("");
                 chkTecnologia.setSelected(false);
                 chkDeportes.setSelected(false);
                 chkMusica.setSelected(false);
                 chkCiencia.setSelected(false);
+
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(null, "Edad inválida.", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -244,7 +268,7 @@ public class Ventanas {
     }
 
     // =========================
-    // COMPRAR ENTRADA (MODIFICADO)
+    // COMPRAR ENTRADA (con RUT)
     // =========================
     private void initPanelComprar() {
         panelComprar.setLayout(new BorderLayout());
@@ -253,7 +277,6 @@ public class Ventanas {
 
         JList<String> listaEventosCompra = new JList<>(modeloEventos);
         listaEventosCompra.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
         panelComprar.add(new JScrollPane(listaEventosCompra), BorderLayout.CENTER);
 
         JPanel panelBotones = new JPanel();
@@ -262,15 +285,14 @@ public class Ventanas {
         panelComprar.add(panelBotones, BorderLayout.SOUTH);
 
         btnComprarAhora.addActionListener(e -> {
-            String usuarioNombre = JOptionPane.showInputDialog(null, "Ingrese nombre de usuario:");
+            String rutUsuario = JOptionPane.showInputDialog(null, "Ingrese RUT de usuario:");
             int idx = listaEventosCompra.getSelectedIndex();
             if (idx >= 0) {
                 Eventos ev = sistema.getEventos().get(idx);
                 try {
-                    String resultado = sistema.realizarVenta(usuarioNombre, ev.getNombre());
+                    String resultado = sistema.realizarVenta(rutUsuario, ev.getNombre());
                     if (resultado.startsWith("Compra realizada")) {
-                        // Crear ticket visual
-                        mostrarVentanaCompra(usuarioNombre, ev, resultado);
+                        mostrarVentanaCompra(rutUsuario, ev, resultado);
                     } else {
                         JOptionPane.showMessageDialog(null, resultado);
                     }
@@ -281,49 +303,79 @@ public class Ventanas {
                 } catch (EntradaNoDisponibleException ex) {
                     JOptionPane.showMessageDialog(null, "Error: No hay entradas disponibles para este evento.");
                 }
-
             } else {
-                JOptionPane.showMessageDialog(null, "Seleccione un evento de la lista.");
+                JOptionPane.showMessageDialog(null, "Debe seleccionar un evento.");
             }
         });
 
         btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "menuUsuario"));
     }
 
-    // =========================
-    // VENTANA DE CONFIRMACIÓN DE COMPRA
-    // =========================
-    private void mostrarVentanaCompra(String usuario, Eventos evento, String detalle) {
-        JDialog dialogo = new JDialog((Frame) null, "Comprobante de Compra", true);
-        dialogo.setSize(400, 300);
-        dialogo.setLocationRelativeTo(null);
-        dialogo.setLayout(new BorderLayout());
-
-        JPanel panelInfo = new JPanel();
-        panelInfo.setLayout(new BoxLayout(panelInfo, BoxLayout.Y_AXIS));
-        panelInfo.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-
-        panelInfo.add(new JLabel("¡Compra realizada con éxito!"));
-        panelInfo.add(Box.createVerticalStrut(10));
-        panelInfo.add(new JLabel("Usuario: " + usuario));
-        panelInfo.add(new JLabel("Evento: " + evento.getNombre()));
-        panelInfo.add(new JLabel("Lugar: " + evento.getLugar()));
-        panelInfo.add(new JLabel("Fecha: " + evento.getFecha()));
-        panelInfo.add(new JLabel("Detalle: " + detalle));
-
-        JButton btnCerrar = new JButton("Cerrar");
-        btnCerrar.addActionListener(ev -> dialogo.dispose());
-
-        JPanel panelBoton = new JPanel();
-        panelBoton.add(btnCerrar);
-
-        dialogo.add(panelInfo, BorderLayout.CENTER);
-        dialogo.add(panelBoton, BorderLayout.SOUTH);
-
-        dialogo.setVisible(true);
+    private void mostrarVentanaCompra(String rut, Eventos ev, String mensaje) {
+        JOptionPane.showMessageDialog(null, mensaje, "Compra realizada", JOptionPane.INFORMATION_MESSAGE);
     }
 
     // =========================
+    // MENÚ OPERADOR
+    // =========================
+    /**
+    private void initPanelMenuOperador() {
+        panelMenuOperador.setLayout(new BoxLayout(panelMenuOperador, BoxLayout.Y_AXIS));
+        for (JButton boton : new JButton[]{btnRegistrarEvento, btnEliminarEvento, btnModificarEvento, btnMostrarUsuarios, btnMostrarVentas}) {
+            boton.setAlignmentX(Component.CENTER_ALIGNMENT);
+            boton.setMaximumSize(new Dimension(240, 50));
+            boton.setFont(new Font("Arial", Font.BOLD, 18));
+            panelMenuOperador.add(Box.createVerticalStrut(10));
+            panelMenuOperador.add(boton);
+        }
+
+        JButton btnVolver = new JButton("Volver");
+        btnVolver.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panelMenuOperador.add(Box.createVerticalStrut(20));
+        panelMenuOperador.add(btnVolver);
+
+        btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "inicio"));
+
+        btnRegistrarEvento.addActionListener(e -> registrarEvento());
+        btnEliminarEvento.addActionListener(e -> eliminarEvento());
+        btnModificarEvento.addActionListener(e -> modificarEvento());
+        btnMostrarUsuarios.addActionListener(e -> {
+            modeloUsuarios.clear();
+            for (Usuarios u : sistema.getUsuarios().values()) {
+                modeloUsuarios.addElement(u.getRut() + " | " + u.getNombre() + " | " + u.getEdad() + " | " + u.getIntereses());
+            }
+            cardLayout.show(panelPrincipal, "mostrarUsuarios");
+        });
+        btnMostrarVentas.addActionListener(e -> {
+            modeloVentas.clear();
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            for (Entrada v : sistema.getEntradas()) {
+                String texto = v.getUsuario().getRut() + " | " + v.getUsuario().getNombre() + 
+                               " | " + v.getEvento().getNombre() + 
+                               " | $" + v.getPrecio() + 
+                               " | " + sdf.format(v.getFechaCompra());
+                modeloVentas.addElement(texto);
+            }
+            cardLayout.show(panelPrincipal, "mostrarVentas");
+        });
+
+    }
+    **/
+
+    // =========================
+    // PANEL USUARIOS
+    // =========================
+    /*
+    private void initPanelUsuarios() {
+        panelUsuarios.setLayout(new BorderLayout());
+        JButton btnVolver = new JButton("Volver");
+        panelUsuarios.add(new JScrollPane(listaUsuarios), BorderLayout.CENTER);
+        panelUsuarios.add(btnVolver, BorderLayout.SOUTH);
+        btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "menuOperador"));
+    }
+    */
+    
+ // =========================
     // MENÚ OPERADOR
     // =========================
     private void initPanelMenuOperador() {
@@ -339,8 +391,7 @@ public class Ventanas {
 
         Dimension botonGrande = new Dimension(240, 50);
         Font fuenteGrande = new Font("Arial", Font.BOLD, 18);
-        for (JButton boton : new JButton[]{btnRegistrarEvento, btnMostrarUsuarios, btnMostrarVentas,
-                btnEliminarEvento, btnModificarEvento, btnVolver}) {
+        for (JButton boton : new JButton[]{btnRegistrarEvento, btnMostrarUsuarios, btnMostrarVentas,btnEliminarEvento,btnModificarEvento, btnVolver}) {
             boton.setMaximumSize(botonGrande);
             boton.setFont(fuenteGrande);
         }
@@ -359,37 +410,94 @@ public class Ventanas {
         panelMenuOperador.add(btnVolver);
         panelMenuOperador.add(Box.createVerticalGlue());
 
-        // --- Registrar evento con formulario ---
+        //Registrar evento con formulario
         btnRegistrarEvento.addActionListener(e -> {
             JTextField txtNombre = new JTextField();
             JTextField txtLugar = new JTextField();
             JTextField txtFecha = new JTextField();
 
-            JPanel panel = new JPanel(new GridLayout(0, 1));
-            panel.add(new JLabel("Nombre:"));
+            //Panel principal con BoxLayout vertical y márgenes
+            JPanel panel = new JPanel();
+            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+            panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));//espacio con los bordes
+
+            //Nombre
+            panel.add(new JLabel("Nombre Evento:"));
+            panel.add(Box.createVerticalStrut(5));
             panel.add(txtNombre);
+            panel.add(Box.createVerticalStrut(10));
+
+            //Lugar
             panel.add(new JLabel("Lugar:"));
+            panel.add(Box.createVerticalStrut(5));
             panel.add(txtLugar);
+            panel.add(Box.createVerticalStrut(10));
+
+            //Fecha
             panel.add(new JLabel("Fecha (dd/MM/yyyy):"));
+            panel.add(Box.createVerticalStrut(5));
             panel.add(txtFecha);
+            panel.add(Box.createVerticalStrut(15));
 
-            int result = JOptionPane.showConfirmDialog(null, panel, "Registrar Evento",
-                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            //Botones OK y Cancelar
+            JButton btnOK = new JButton("OK");
+            JButton btnCancelar = new JButton("Cancelar");
+            JPanel panelBotones = new JPanel();
+            panelBotones.add(btnOK);
+            panelBotones.add(btnCancelar);
+            panel.add(panelBotones);
 
-            if (result == JOptionPane.OK_OPTION) {
-                try {
-                    String nombre = txtNombre.getText();
-                    String lugar = txtLugar.getText();
-                    String fecha = txtFecha.getText();
+            //Crear JDialog, para usar la forma de formulario, como el de google :)
+            JDialog dialogo = new JDialog((Frame) null, "Registrar Evento", true);
+            dialogo.setContentPane(panel);
 
-                    sistema.registrarEvento(nombre, lugar, fecha);
-                    JOptionPane.showMessageDialog(null, "Evento registrado con éxito!");
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Error al registrar evento: " + ex.getMessage(),
-                            "Error", JOptionPane.ERROR_MESSAGE);
+            //Acción botón OK
+            btnOK.addActionListener(ev -> {
+                String nombre = txtNombre.getText().trim();
+                String lugar = txtLugar.getText().trim();
+                String fechaStr = txtFecha.getText().trim();
+
+                //Validaciones individuales
+                if (nombre.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialogo, "Ingrese el nombre del evento.", "Campo faltante", JOptionPane.WARNING_MESSAGE);
+                    return; //No cerrar el dialogo, para no perder los cambios que estaba haciendo antes de que aparezca que falta llenar un campo
                 }
-            }
+                if (lugar.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialogo, "Ingrese el lugar del evento.", "Campo faltante", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                if (fechaStr.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialogo, "Ingrese la fecha del evento.", "Campo faltante", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                // Validar el formato de la fecha
+                try {
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                    sdf.setLenient(false);
+                    Date fecha = sdf.parse(fechaStr);
+
+                    sistema.registrarEvento(nombre, lugar, fechaStr);
+                    JOptionPane.showMessageDialog(dialogo, "Evento registrado con éxito!");
+                    dialogo.dispose(); // Solo cierra la ventana si todo es correcto
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(dialogo, "Formato de fecha inválido. Use dd/MM/yyyy.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+
+            //Accion del boton Cancelar
+            btnCancelar.addActionListener(ev -> {
+                JOptionPane.showMessageDialog(dialogo, "No se ha registrado ningún evento.");
+                dialogo.dispose();
+            });
+
+            //Ajuste de tamaño y ubicación
+            dialogo.pack();
+            dialogo.setLocationRelativeTo(null); // Centrado
+            dialogo.setVisible(true);
         });
+
+
 
         btnMostrarUsuarios.addActionListener(e -> {
             actualizarListaUsuarios("");
@@ -398,32 +506,29 @@ public class Ventanas {
 
         btnMostrarVentas.addActionListener(e -> {
             modeloVentas.clear();
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             for (Entrada en : sistema.getEntradas()) {
-                String fechaStr = sdf.format(en.getFechaCompra());
                 modeloVentas.addElement("Usuario: " + en.getUsuario().getNombre() +
                         " | Evento: " + en.getEvento().getNombre() +
-                        " | Precio: $" + en.getPrecio() +
-                        " | Fecha Compra: " + fechaStr);
+                        " | Precio: $" + en.getPrecio());
             }
             cardLayout.show(panelPrincipal, "mostrarVentas");
         });
-
-        // Acción para eliminar un evento
+        //accion para eliminar un evento
         btnEliminarEvento.addActionListener(e -> {
             if (sistema.getEventos().isEmpty()) {
                 JOptionPane.showMessageDialog(null, "No se ha registrado ningún evento.");
                 return;
             }
 
+            // Crear un arreglo con los nombres de los eventos
             String[] eventosArray = sistema.getEventos().stream()
                                           .map(Eventos::getNombre)
                                           .toArray(String[]::new);
 
             JComboBox<String> comboEventos = new JComboBox<>(eventosArray);
-            comboEventos.setSelectedIndex(-1);
+            comboEventos.setSelectedIndex(-1); // <- No hay selección inicial
 
-            int opcion = JOptionPane.showConfirmDialog(null, comboEventos,
+            int opcion = JOptionPane.showConfirmDialog(null, comboEventos, 
                             "Seleccione el evento a eliminar", JOptionPane.OK_CANCEL_OPTION);
 
             if (opcion != JOptionPane.OK_OPTION || comboEventos.getSelectedIndex() == -1) {
@@ -440,12 +545,74 @@ public class Ventanas {
             }
         });
 
-        // Botón volver al inicio
+
+        //falta arreglar que sucede cuando se presiona ok sin haber precionado un evento para eliminar
+        //agregar lo que hace la parte de modificar un evento
+        btnModificarEvento.addActionListener(e -> {
+            if (sistema.getEventos().isEmpty()) {
+                JOptionPane.showMessageDialog(null, "No se ha registrado ningún evento.");
+                return;
+            }
+
+            // Crear combo con nombres de eventos
+            String[] eventosArray = sistema.getEventos().stream()
+                                          .map(Eventos::getNombre)
+                                          .toArray(String[]::new);
+            JComboBox<String> comboEventos = new JComboBox<>(eventosArray);
+            comboEventos.setSelectedIndex(-1); // nada seleccionado al inicio
+
+            int opcion = JOptionPane.showConfirmDialog(null, comboEventos,
+                            "Seleccione el evento a modificar", JOptionPane.OK_CANCEL_OPTION);
+
+            if (opcion != JOptionPane.OK_OPTION || comboEventos.getSelectedIndex() == -1) {
+                JOptionPane.showMessageDialog(null, "No se ha modificado ningún evento.");
+                return;
+            }
+
+            Eventos evento = sistema.getEventos().get(comboEventos.getSelectedIndex());
+
+            JTextField txtNombre = new JTextField(evento.getNombre());
+            JTextField txtLugar = new JTextField(evento.getLugar());
+            JTextField txtFecha = new JTextField(new SimpleDateFormat("dd/MM/yyyy").format(evento.getFecha()));
+
+            JPanel panel = new JPanel(new GridLayout(0, 1));
+            panel.add(new JLabel("Nombre:"));
+            panel.add(txtNombre);
+            panel.add(new JLabel("Lugar:"));
+            panel.add(txtLugar);
+            panel.add(new JLabel("Fecha (dd/MM/yyyy):"));
+            panel.add(txtFecha);
+
+            int resultado = JOptionPane.showConfirmDialog(null, panel, "Modificar Evento",
+                            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+            if (resultado == JOptionPane.OK_OPTION) {
+                try {
+                    String nombreNuevo = txtNombre.getText().trim();
+                    String lugarNuevo = txtLugar.getText().trim();
+                    Date fechaNueva = new SimpleDateFormat("dd/MM/yyyy").parse(txtFecha.getText().trim());
+
+                    // Modificar directamente en el objeto existente
+                    evento.setNombre(nombreNuevo);
+                    evento.setLugar(lugarNuevo);
+                    evento.setFecha(fechaNueva);
+
+                    JOptionPane.showMessageDialog(null, "Evento modificado con éxito.");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "Error al modificar fecha: " + ex.getMessage(),
+                                                  "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "No se ha modificado ningún evento.");
+            }
+        });
+
+
+
         btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "inicio"));
     }
 
-    // =========================
-    // PANEL USUARIOS (con filtro)
+ // PANEL USUARIOS (con filtro)
     // =========================
     private void initPanelUsuarios() {
         panelUsuarios.setLayout(new BorderLayout());
@@ -474,7 +641,112 @@ public class Ventanas {
         btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "menuOperador"));
     }
 
-    // Método auxiliar para actualizar lista de usuarios con filtro
+    // =========================
+    // PANEL VENTAS
+    // =========================
+    private void initPanelVentas() {
+        panelVentas.setLayout(new BorderLayout());
+        JButton btnVolver = new JButton("Volver");
+        panelVentas.add(new JScrollPane(listaVentas), BorderLayout.CENTER);
+        panelVentas.add(btnVolver, BorderLayout.SOUTH);
+        btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "menuOperador"));
+    }
+
+    // =========================
+    // MÉTODOS OPERADOR
+    // =========================
+    private void registrarEvento() {
+        JTextField txtNombre = new JTextField();
+        JTextField txtLugar = new JTextField();
+        JTextField txtFecha = new JTextField();
+
+        Object[] campos = {
+            "Nombre:", txtNombre,
+            "Lugar:", txtLugar,
+            "Fecha (dd/MM/yyyy):", txtFecha
+        };
+
+        int opcion = JOptionPane.showConfirmDialog(null, campos, "Registrar Evento", JOptionPane.OK_CANCEL_OPTION);
+        if (opcion == JOptionPane.OK_OPTION) {
+            String nombre = txtNombre.getText().trim();
+            String lugar = txtLugar.getText().trim();
+            String fechaStr = txtFecha.getText().trim();
+
+            if (nombre.isEmpty() || lugar.isEmpty() || fechaStr.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Todos los campos son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Pasamos el String directamente al método sobrecargado
+            sistema.registrarEvento(nombre, lugar, fechaStr);
+
+            JOptionPane.showMessageDialog(null, "Evento registrado con éxito!");
+        }
+    }
+
+
+    private void eliminarEvento() {
+        if (sistema.getEventos().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No hay eventos para eliminar.");
+            return;
+        }
+        String[] nombres = sistema.getEventos().stream().map(Eventos::getNombre).toArray(String[]::new);
+        JComboBox<String> combo = new JComboBox<>(nombres);
+        int opcion = JOptionPane.showConfirmDialog(null, combo, "Seleccione evento a eliminar", JOptionPane.OK_CANCEL_OPTION);
+        if (opcion == JOptionPane.OK_OPTION && combo.getSelectedIndex() >= 0) {
+            try {
+                sistema.eliminarEvento((String) combo.getSelectedItem());
+                JOptionPane.showMessageDialog(null, "Evento eliminado!");
+            } catch (EventoNoEncontradoException ex) {
+                JOptionPane.showMessageDialog(null, "Error: No se encontró el evento.");
+            }
+        }
+
+    }
+
+    private void modificarEvento() {
+        if (sistema.getEventos().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No hay eventos para modificar.");
+            return;
+        }
+        String[] nombres = sistema.getEventos().stream().map(Eventos::getNombre).toArray(String[]::new);
+        JComboBox<String> combo = new JComboBox<>(nombres);
+        int opcion = JOptionPane.showConfirmDialog(null, combo, "Seleccione evento a modificar", JOptionPane.OK_CANCEL_OPTION);
+        if (opcion == JOptionPane.OK_OPTION && combo.getSelectedIndex() >= 0) {
+            Eventos ev = sistema.getEventos().get(combo.getSelectedIndex());
+
+            JTextField txtNombre = new JTextField(ev.getNombre());
+            JTextField txtLugar = new JTextField(ev.getLugar());
+            JTextField txtFecha = new JTextField(new SimpleDateFormat("dd/MM/yyyy").format(ev.getFecha()));
+
+            Object[] campos = {
+                "Nombre:", txtNombre,
+                "Lugar:", txtLugar,
+                "Fecha (dd/MM/yyyy):", txtFecha
+            };
+
+            int op = JOptionPane.showConfirmDialog(null, campos, "Modificar Evento", JOptionPane.OK_CANCEL_OPTION);
+            if (op == JOptionPane.OK_OPTION) {
+                try {
+                    String nombreNuevo = txtNombre.getText().trim();
+                    String lugarNuevo = txtLugar.getText().trim();
+
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                    sdf.setLenient(false);
+                    Date fechaNueva = sdf.parse(txtFecha.getText().trim());
+
+                    ev.setNombre(nombreNuevo);
+                    ev.setLugar(lugarNuevo);
+                    ev.setFecha(fechaNueva);
+
+                    JOptionPane.showMessageDialog(null, "Evento modificado con éxito!");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "Fecha inválida.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+
+        }
+    }
     private void actualizarListaUsuarios(String filtro) {
         modeloUsuarios.clear();
         for (Usuarios u : sistema.getUsuarios().values()) {
@@ -486,16 +758,5 @@ public class Ventanas {
                         " | Intereses: " + String.join(", ", u.getIntereses()));
             }
         }
-    }
-
-    // =========================
-    // PANEL VENTAS
-    // =========================
-    private void initPanelVentas() {
-        panelVentas.setLayout(new BorderLayout());
-        JButton btnVolver = new JButton("Volver");
-        panelVentas.add(new JScrollPane(listaVentas), BorderLayout.CENTER);
-        panelVentas.add(btnVolver, BorderLayout.SOUTH);
-        btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "menuOperador"));
     }
 }

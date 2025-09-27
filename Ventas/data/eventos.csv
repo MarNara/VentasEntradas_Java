@@ -1,16 +1,17 @@
 Nombre,Lugar,Fecha,Capacidad,Categoria
 Concierto Rock,Estadio Nacional,15/10/2025,100,General
-Feria de Tecnología,Centro de Convenciones,20/10/2025,100,General
+Feria de Tecnología,Centro de Convenciones,20/10/2025,99,General
 Exposición de Arte,Museo Nacional,25/10/2025,100,General
 Festival de Cine,Teatro Municipal,30/10/2025,100,General
 Partido de Fútbol,Estadio Monumental,05/11/2025,100,General
 Conferencia de Ciencia,Universidad Central,10/11/2025,100,General
 Concierto Pop,Auditorio Principal,15/11/2025,100,General
-Torneo de Baloncesto,Gimnasio Olímpico,20/11/2025,100,General
+Torneo de Baloncesto,Gimnasio Olímpico,20/11/2025,98,General
 Festival de Música,Parque Metropolitano,25/11/2025,100,General
-Exposición Fotográfica,Museo de la Ciudad,30/11/2025,99,General
+Exposición Fotográfica,Museo de la Ciudad,30/08/2026,100,General
 Feria Gastronómica,Centro Cultural,05/12/2025,100,General
 Maratón Anual,Calle Principal,10/12/2025,100,General
 Show de Magia,Teatro Nacional,15/12/2025,100,General
 Obra de Teatro,Teatro Municipal,20/12/2025,100,General
 Charla Motivacional,Universidad Central,25/12/2025,100,General
+Hola Mundo,El Mundo,12/12/2025,100,General
