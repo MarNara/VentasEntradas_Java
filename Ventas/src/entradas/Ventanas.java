@@ -410,36 +410,50 @@ public class Ventanas {
         panelMenuOperador.add(btnVolver);
         panelMenuOperador.add(Box.createVerticalGlue());
 
-        //Registrar evento con formulario
+      //Registrar evento con formulario
         btnRegistrarEvento.addActionListener(e -> {
             JTextField txtNombre = new JTextField();
             JTextField txtLugar = new JTextField();
             JTextField txtFecha = new JTextField();
+            JTextField txtCapacidad = new JTextField();
+            JTextField txtCategoria = new JTextField();
 
-            //Panel principal con BoxLayout vertical y márgenes
+            // Panel principal con BoxLayout vertical y márgenes
             JPanel panel = new JPanel();
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-            panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));//espacio con los bordes
+            panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-            //Nombre
+            // Nombre
             panel.add(new JLabel("Nombre Evento:"));
             panel.add(Box.createVerticalStrut(5));
             panel.add(txtNombre);
             panel.add(Box.createVerticalStrut(10));
 
-            //Lugar
+            // Lugar
             panel.add(new JLabel("Lugar:"));
             panel.add(Box.createVerticalStrut(5));
             panel.add(txtLugar);
             panel.add(Box.createVerticalStrut(10));
 
-            //Fecha
+            // Fecha
             panel.add(new JLabel("Fecha (dd/MM/yyyy):"));
             panel.add(Box.createVerticalStrut(5));
             panel.add(txtFecha);
+            panel.add(Box.createVerticalStrut(10));
+
+            // Capacidad
+            panel.add(new JLabel("Capacidad:"));
+            panel.add(Box.createVerticalStrut(5));
+            panel.add(txtCapacidad);
+            panel.add(Box.createVerticalStrut(10));
+
+            // Categoría
+            panel.add(new JLabel("Categoría:"));
+            panel.add(Box.createVerticalStrut(5));
+            panel.add(txtCategoria);
             panel.add(Box.createVerticalStrut(15));
 
-            //Botones OK y Cancelar
+            // Botones OK y Cancelar
             JButton btnOK = new JButton("OK");
             JButton btnCancelar = new JButton("Cancelar");
             JPanel panelBotones = new JPanel();
@@ -447,20 +461,22 @@ public class Ventanas {
             panelBotones.add(btnCancelar);
             panel.add(panelBotones);
 
-            //Crear JDialog, para usar la forma de formulario, como el de google :)
+            // Crear JDialog
             JDialog dialogo = new JDialog((Frame) null, "Registrar Evento", true);
             dialogo.setContentPane(panel);
 
-            //Acción botón OK
+            // Acción botón OK
             btnOK.addActionListener(ev -> {
                 String nombre = txtNombre.getText().trim();
                 String lugar = txtLugar.getText().trim();
                 String fechaStr = txtFecha.getText().trim();
+                String capacidadStr = txtCapacidad.getText().trim();
+                String categoria = txtCategoria.getText().trim();
 
-                //Validaciones individuales
+                // Validaciones de campos vacíos
                 if (nombre.isEmpty()) {
                     JOptionPane.showMessageDialog(dialogo, "Ingrese el nombre del evento.", "Campo faltante", JOptionPane.WARNING_MESSAGE);
-                    return; //No cerrar el dialogo, para no perder los cambios que estaba haciendo antes de que aparezca que falta llenar un campo
+                    return;
                 }
                 if (lugar.isEmpty()) {
                     JOptionPane.showMessageDialog(dialogo, "Ingrese el lugar del evento.", "Campo faltante", JOptionPane.WARNING_MESSAGE);
@@ -470,34 +486,54 @@ public class Ventanas {
                     JOptionPane.showMessageDialog(dialogo, "Ingrese la fecha del evento.", "Campo faltante", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
+                if (capacidadStr.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialogo, "Ingrese la capacidad del evento.", "Campo faltante", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                if (categoria.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialogo, "Ingrese la categoría del evento.", "Campo faltante", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
 
-                // Validar el formato de la fecha
+                // Validar fecha
                 try {
                     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
                     sdf.setLenient(false);
                     Date fecha = sdf.parse(fechaStr);
 
-                    sistema.registrarEvento(nombre, lugar, fechaStr);
+                    // Validar capacidad
+                    int capacidad;
+                    try {
+                        capacidad = Integer.parseInt(capacidadStr);
+                        if (capacidad <= 0) {
+                            JOptionPane.showMessageDialog(dialogo, "La capacidad debe ser mayor que 0.", "Error", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    } catch (NumberFormatException nfe) {
+                        JOptionPane.showMessageDialog(dialogo, "Capacidad inválida. Debe ser un número entero.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    // Registrar evento
+                    sistema.registrarEvento(nombre, lugar, fecha, capacidad, categoria, new ArrayList<>());
                     JOptionPane.showMessageDialog(dialogo, "Evento registrado con éxito!");
-                    dialogo.dispose(); // Solo cierra la ventana si todo es correcto
+                    dialogo.dispose();
+
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(dialogo, "Formato de fecha inválido. Use dd/MM/yyyy.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             });
 
-            //Accion del boton Cancelar
+            // Acción botón Cancelar
             btnCancelar.addActionListener(ev -> {
                 JOptionPane.showMessageDialog(dialogo, "No se ha registrado ningún evento.");
                 dialogo.dispose();
             });
 
-            //Ajuste de tamaño y ubicación
             dialogo.pack();
-            dialogo.setLocationRelativeTo(null); // Centrado
+            dialogo.setLocationRelativeTo(null);
             dialogo.setVisible(true);
         });
-
-
 
         btnMostrarUsuarios.addActionListener(e -> {
             actualizarListaUsuarios("");
@@ -655,6 +691,7 @@ public class Ventanas {
     // =========================
     // MÉTODOS OPERADOR
     // =========================
+    /**
     private void registrarEvento() {
         JTextField txtNombre = new JTextField();
         JTextField txtLugar = new JTextField();
@@ -747,6 +784,7 @@ public class Ventanas {
 
         }
     }
+**/
     private void actualizarListaUsuarios(String filtro) {
         modeloUsuarios.clear();
         for (Usuarios u : sistema.getUsuarios().values()) {
