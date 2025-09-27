@@ -17,24 +17,21 @@ public class SistemaEntradas {
         entradas = new ArrayList<>();
     }
 
-    // =========================
-    // MÉTODOS BATCH
-    // =========================
+    
+    //Cargar datos iniciales
     public void cargarDatosIniciales() {
         cargarUsuariosCSV();
         cargarEventosCSV();
         cargarEntradasCSV();
     }
-
+  //guardar datos iniciales
     public void guardarDatosAlSalir() {
         guardarUsuariosCSV();
         guardarEventosCSV();
         guardarEntradasCSV();
     }
 
-    // =========================
-    // CARGA DESDE CSV
-    // =========================
+    //cargar usuarios desde el csv
     public void cargarUsuariosCSV() {
         File archivo = new File(CARPETA_DATA + "/usuarios.csv");
         if (!archivo.exists()) return;
@@ -51,7 +48,7 @@ public class SistemaEntradas {
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
-
+  //cargar eventos desde el csv
     public void cargarEventosCSV() {
         File archivo = new File(CARPETA_DATA + "/eventos.csv");
         if (!archivo.exists()) return;
@@ -68,7 +65,7 @@ public class SistemaEntradas {
                 int capacidad = campos.length > 3 ? Integer.parseInt(campos[3].trim()) : 100;
                 String categoria = campos.length > 4 ? campos[4].trim() : "General";
 
-                // 🔹 Aquí creamos ubicaciones por defecto (para que nunca queden vacías)
+                // Aquí creamos ubicaciones por defecto (para que nunca queden vacías)
                 List<Ubicacion> ubicaciones = new ArrayList<>();
                 ubicaciones.add(new Ubicacion("General", 50, 0.0));
                 ubicaciones.add(new Ubicacion("VIP", 30, 0.5));
@@ -78,7 +75,7 @@ public class SistemaEntradas {
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
-
+    //cargar entradas desde el csv
     public void cargarEntradasCSV() {
         File archivo = new File(CARPETA_DATA + "/entradas_vendidas.csv");
         if (!archivo.exists()) return;
@@ -101,9 +98,7 @@ public class SistemaEntradas {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // =========================
-    // GUARDAR EN CSV
-    // =========================
+    //guardar nuevos usuarios en csv de usuarios
     public void guardarUsuariosCSV() {
         try (PrintWriter pw = new PrintWriter(new FileWriter(CARPETA_DATA + "/usuarios.csv"))) {
             pw.println("Nombre,Edad,Intereses");
@@ -112,7 +107,7 @@ public class SistemaEntradas {
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
-
+    //guardar nuevos eventos en csv de eventos
     public void guardarEventosCSV() {
         try (PrintWriter pw = new PrintWriter(new FileWriter(CARPETA_DATA + "/eventos.csv"))) {
             pw.println("Nombre,Lugar,Fecha,Capacidad,Categoria");
@@ -123,7 +118,7 @@ public class SistemaEntradas {
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
-
+    //guardar nuevas entradas en csv de entradas_vendidas
     public void guardarEntradasCSV() {
         try (PrintWriter pw = new PrintWriter(new FileWriter(CARPETA_DATA + "/entradas_vendidas.csv"))) {
             pw.println("Usuario,Evento,Precio");
@@ -198,4 +193,6 @@ public class SistemaEntradas {
         else if (usuario.getEdad() < 50) return disponibles.get(1);
         else return disponibles.get(disponibles.size() - 1);
     }
+    
+    //eliminar eventos
 }
