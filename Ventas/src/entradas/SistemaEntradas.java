@@ -195,4 +195,13 @@ public class SistemaEntradas {
     }
     
     //eliminar eventos
+    public void eliminarEvento(String nombreEvento) throws EventoNoEncontradoException {
+        boolean eliminado = eventos.removeIf(ev -> ev.getNombre().equalsIgnoreCase(nombreEvento));
+
+        if (!eliminado) {
+            // Lanza la excepción con el mensaje por defecto
+            throw new EventoNoEncontradoException();
+        }
+    }
+
 }

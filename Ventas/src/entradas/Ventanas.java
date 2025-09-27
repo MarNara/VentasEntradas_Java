@@ -29,6 +29,8 @@ public class Ventanas {
     private final JButton btnRegistrarEvento = new JButton("Registrar Evento");
     private final JButton btnMostrarUsuarios = new JButton("Mostrar Usuarios");
     private final JButton btnMostrarVentas = new JButton("Mostrar Ventas");
+    private final JButton btnEliminarEvento = new JButton("Eliminar Evento");
+    private final JButton btnModificarEvento = new JButton("Modificar Evento");
 
     // Listas GUI
     private final DefaultListModel<String> modeloUsuarios = new DefaultListModel<>();
@@ -328,12 +330,14 @@ public class Ventanas {
         btnRegistrarEvento.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnMostrarUsuarios.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnMostrarVentas.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnEliminarEvento.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnModificarEvento.setAlignmentX(Component.CENTER_ALIGNMENT);
         JButton btnVolver = new JButton("Volver");
         btnVolver.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         Dimension botonGrande = new Dimension(240, 50);
         Font fuenteGrande = new Font("Arial", Font.BOLD, 18);
-        for (JButton boton : new JButton[]{btnRegistrarEvento, btnMostrarUsuarios, btnMostrarVentas, btnVolver}) {
+        for (JButton boton : new JButton[]{btnRegistrarEvento, btnMostrarUsuarios, btnMostrarVentas,btnEliminarEvento,btnModificarEvento, btnVolver}) {
             boton.setMaximumSize(botonGrande);
             boton.setFont(fuenteGrande);
         }
@@ -345,6 +349,10 @@ public class Ventanas {
         panelMenuOperador.add(Box.createVerticalStrut(10));
         panelMenuOperador.add(btnMostrarVentas);
         panelMenuOperador.add(Box.createVerticalStrut(20));
+        panelMenuOperador.add(btnEliminarEvento);
+        panelMenuOperador.add(Box.createVerticalStrut(10));
+        panelMenuOperador.add(btnModificarEvento);
+        panelMenuOperador.add(Box.createVerticalStrut(10));
         panelMenuOperador.add(btnVolver);
         panelMenuOperador.add(Box.createVerticalGlue());
 
@@ -394,6 +402,42 @@ public class Ventanas {
             }
             cardLayout.show(panelPrincipal, "mostrarVentas");
         });
+        //accion para eliminar un evento
+        btnEliminarEvento.addActionListener(e -> {
+            if (sistema.getEventos().isEmpty()) {
+                JOptionPane.showMessageDialog(null, "No se ha registrado ningún evento.");
+                return;
+            }
+
+            // Crear un arreglo con los nombres de los eventos
+            String[] eventosArray = sistema.getEventos().stream()
+                                          .map(Eventos::getNombre)
+                                          .toArray(String[]::new);
+
+            JComboBox<String> comboEventos = new JComboBox<>(eventosArray);
+            comboEventos.setSelectedIndex(-1); // <- No hay selección inicial
+
+            int opcion = JOptionPane.showConfirmDialog(null, comboEventos, 
+                            "Seleccione el evento a eliminar", JOptionPane.OK_CANCEL_OPTION);
+
+            if (opcion != JOptionPane.OK_OPTION || comboEventos.getSelectedIndex() == -1) {
+                JOptionPane.showMessageDialog(null, "No se ha eliminado ningún evento.");
+                return;
+            }
+
+            String nombreEvento = (String) comboEventos.getSelectedItem();
+            try {
+                sistema.eliminarEvento(nombreEvento);
+                JOptionPane.showMessageDialog(null, "Evento eliminado con éxito.");
+            } catch (EventoNoEncontradoException ex) {
+                JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+
+        //falta arreglar que sucede cuando se presiona ok sin haber precionado un evento para eliminar
+        //agregar lo que hace la parte de modificar un evento
+
 
         btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "inicio"));
     }
