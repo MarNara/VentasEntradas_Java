@@ -260,5 +260,17 @@ public class SistemaEntradas {
             throw new EventoNoEncontradoException();
         }
     }
+ // Modificar una ubicación existente
+    public void modificarUbicacion(Eventos evento, Ubicacion ubicacion, String nuevoNombre, int nuevaCapacidad, double nuevoPrecio) {
+        ubicacion.setNombre(nuevoNombre);
+        ubicacion.setCapacidad(nuevaCapacidad);
+        ubicacion.setPrecio(nuevoPrecio);
+    }
+
+    // Eliminar una ubicación de un evento
+    public void eliminarUbicacion(Eventos evento, Ubicacion ubicacion) {
+        evento.getUbicaciones().remove(ubicacion);
+    }
+
     
 }

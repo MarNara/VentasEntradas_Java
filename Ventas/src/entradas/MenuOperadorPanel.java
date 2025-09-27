@@ -7,7 +7,8 @@ import java.util.ArrayList;
 import java.util.Date;
 
 class MenuOperadorPanel extends JPanel {
-    private final DefaultListModel<String> modeloUsuarios = new DefaultListModel<>();
+    private static final long serialVersionUID = 1L;
+	private final DefaultListModel<String> modeloUsuarios = new DefaultListModel<>();
     private final DefaultListModel<String> modeloVentas = new DefaultListModel<>();
     private final JList<String> listaVentas = new JList<>(modeloVentas);
 
@@ -20,12 +21,14 @@ class MenuOperadorPanel extends JPanel {
         JButton btnMostrarVentas = new JButton("Mostrar Ventas");
         JButton btnEliminarEvento = new JButton("Eliminar Evento");
         JButton btnModificarEvento = new JButton("Modificar Evento");
+        JButton btnModificarUbicacion = new JButton("Modificar Ubicación");
+        JButton btnEliminarUbicacion = new JButton("Eliminar Ubicación");
         JButton btnVolver = new JButton("Volver");
 
         Dimension botonGrande = new Dimension(240, 50);
         Font fuenteGrande = new Font("Arial", Font.BOLD, 18);
         for (JButton boton : new JButton[]{btnRegistrarEvento, btnMostrarUsuarios, btnMostrarVentas,
-                btnEliminarEvento, btnModificarEvento, btnVolver}) {
+                btnEliminarEvento, btnModificarEvento, btnModificarUbicacion, btnEliminarUbicacion, btnVolver}) {
             boton.setMaximumSize(botonGrande);
             boton.setFont(fuenteGrande);
             boton.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -37,6 +40,8 @@ class MenuOperadorPanel extends JPanel {
         add(btnMostrarVentas); add(Box.createVerticalStrut(20));
         add(btnEliminarEvento); add(Box.createVerticalStrut(10));
         add(btnModificarEvento); add(Box.createVerticalStrut(10));
+        add(btnModificarUbicacion); add(Box.createVerticalStrut(10));
+        add(btnEliminarUbicacion); add(Box.createVerticalStrut(20));
         add(btnVolver);
         add(Box.createVerticalGlue());
 
@@ -50,9 +55,7 @@ class MenuOperadorPanel extends JPanel {
         // =========================
         // MOSTRAR USUARIOS CON FILTRO POR INTERESES
         // =========================
-        btnMostrarUsuarios.addActionListener(e -> {
-            mostrarUsuariosConFiltro(sistema);
-        });
+        btnMostrarUsuarios.addActionListener(e -> mostrarUsuariosConFiltro(sistema));
 
         // =========================
         // MOSTRAR VENTAS
@@ -112,11 +115,109 @@ class MenuOperadorPanel extends JPanel {
                 modificarEvento(evento);
             }
         });
+
+        // =========================
+        // MODIFICAR UBICACIÓN
+        // =========================
+        btnModificarUbicacion.addActionListener(e -> modificarUbicacion(sistema));
+
+        // =========================
+        // ELIMINAR UBICACIÓN
+        // =========================
+        btnEliminarUbicacion.addActionListener(e -> eliminarUbicacion(sistema));
     }
 
     // =========================
     // MÉTODOS AUXILIARES
     // =========================
+    
+    private void modificarUbicacion(SistemaEntradas sistema) {
+        if (sistema.getEventos().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No hay eventos registrados.");
+            return;
+        }
+        String[] eventosArray = sistema.getEventos().stream().map(Eventos::getNombre).toArray(String[]::new);
+        JComboBox<String> comboEventos = new JComboBox<>(eventosArray);
+        comboEventos.setSelectedIndex(-1);
+        int opcionEvento = JOptionPane.showConfirmDialog(null, comboEventos, "Seleccione evento", JOptionPane.OK_CANCEL_OPTION);
+        if (opcionEvento != JOptionPane.OK_OPTION || comboEventos.getSelectedIndex() == -1) return;
+
+        Eventos evento = sistema.getEventos().get(comboEventos.getSelectedIndex());
+        if (evento.getUbicaciones().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Este evento no tiene ubicaciones.");
+            return;
+        }
+
+        String[] ubicacionesArray = evento.getUbicaciones().stream().map(Ubicacion::getNombre).toArray(String[]::new);
+        JComboBox<String> comboUbicaciones = new JComboBox<>(ubicacionesArray);
+        comboUbicaciones.setSelectedIndex(-1);
+        int opcionUbic = JOptionPane.showConfirmDialog(null, comboUbicaciones, "Seleccione ubicación", JOptionPane.OK_CANCEL_OPTION);
+        if (opcionUbic != JOptionPane.OK_OPTION || comboUbicaciones.getSelectedIndex() == -1) return;
+
+        Ubicacion ubicacion = evento.getUbicaciones().get(comboUbicaciones.getSelectedIndex());
+
+        JTextField txtNombre = new JTextField(ubicacion.getNombre());
+        JTextField txtCapacidad = new JTextField(String.valueOf(ubicacion.getCapacidad()));
+        JTextField txtPrecio = new JTextField(String.valueOf(ubicacion.getPrecio()));
+
+        JPanel panel = new JPanel(new GridLayout(0,1,5,5));
+        panel.add(new JLabel("Nombre:")); panel.add(txtNombre);
+        panel.add(new JLabel("Capacidad:")); panel.add(txtCapacidad);
+        panel.add(new JLabel("Precio:")); panel.add(txtPrecio);
+
+        int resultado = JOptionPane.showConfirmDialog(null, panel, "Modificar Ubicación", JOptionPane.OK_CANCEL_OPTION);
+        if (resultado == JOptionPane.OK_OPTION) {
+            try {
+                String nuevoNombre = txtNombre.getText().trim();
+                int nuevaCapacidad = Integer.parseInt(txtCapacidad.getText().trim());
+                double nuevoPrecio = Double.parseDouble(txtPrecio.getText().trim());
+
+                if(nuevoNombre.isEmpty() || nuevaCapacidad < 0 || nuevoPrecio < 0) {
+                    JOptionPane.showMessageDialog(null, "Valores inválidos.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                sistema.modificarUbicacion(evento, ubicacion, nuevoNombre, nuevaCapacidad, nuevoPrecio);
+                JOptionPane.showMessageDialog(null, "Ubicación modificada con éxito.");
+            } catch(NumberFormatException ex) {
+                JOptionPane.showMessageDialog(null, "Capacidad o precio inválido.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void eliminarUbicacion(SistemaEntradas sistema) {
+        if (sistema.getEventos().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No hay eventos registrados.");
+            return;
+        }
+        String[] eventosArray = sistema.getEventos().stream().map(Eventos::getNombre).toArray(String[]::new);
+        JComboBox<String> comboEventos = new JComboBox<>(eventosArray);
+        comboEventos.setSelectedIndex(-1);
+        int opcionEvento = JOptionPane.showConfirmDialog(null, comboEventos, "Seleccione evento", JOptionPane.OK_CANCEL_OPTION);
+        if (opcionEvento != JOptionPane.OK_OPTION || comboEventos.getSelectedIndex() == -1) return;
+
+        Eventos evento = sistema.getEventos().get(comboEventos.getSelectedIndex());
+        if (evento.getUbicaciones().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Este evento no tiene ubicaciones.");
+            return;
+        }
+
+        String[] ubicacionesArray = evento.getUbicaciones().stream().map(Ubicacion::getNombre).toArray(String[]::new);
+        JComboBox<String> comboUbicaciones = new JComboBox<>(ubicacionesArray);
+        comboUbicaciones.setSelectedIndex(-1);
+        int opcionUbic = JOptionPane.showConfirmDialog(null, comboUbicaciones, "Seleccione ubicación a eliminar", JOptionPane.OK_CANCEL_OPTION);
+        if(opcionUbic != JOptionPane.OK_OPTION || comboUbicaciones.getSelectedIndex() == -1) return;
+
+        Ubicacion ubicacion = evento.getUbicaciones().get(comboUbicaciones.getSelectedIndex());
+        int confirmar = JOptionPane.showConfirmDialog(null, "Eliminar ubicación " + ubicacion.getNombre() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        if(confirmar == JOptionPane.YES_OPTION) {
+            sistema.eliminarUbicacion(evento, ubicacion);
+            JOptionPane.showMessageDialog(null, "Ubicación eliminada con éxito.");
+        }
+    }
+
+    // --- resto de métodos como registrarEvento(), modificarEvento(), mostrarUsuariosConFiltro(), actualizarListaUsuariosPorInteres(), normalizarTexto() se mantienen igual ---
+
 
     private void registrarEvento(SistemaEntradas sistema) {
         JTextField txtNombre = new JTextField();

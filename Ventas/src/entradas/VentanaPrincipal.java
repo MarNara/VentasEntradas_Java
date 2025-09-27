@@ -2,14 +2,15 @@ package entradas;
 
 import javax.swing.*;
 import java.awt.*;
-import java.text.Normalizer;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.List;
+//import java.text.Normalizer;
+//import java.text.SimpleDateFormat;
+//import java.util.*;
+//import java.util.List;
 
 
 public class VentanaPrincipal extends JFrame {
-    private final SistemaEntradas sistema;
+    private static final long serialVersionUID = 1L;
+	private final SistemaEntradas sistema;
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel panelPrincipal = new JPanel(cardLayout);
 

@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.List;
 
 class MenuUsuarioPanel extends JPanel {
+ private static final long serialVersionUID = 1L;
  private final DefaultListModel<String> modeloEventos = new DefaultListModel<>();
  private final DefaultListModel<String> modeloUsuarios = new DefaultListModel<>();
  private final DefaultListModel<String> modeloVentas = new DefaultListModel<>();
