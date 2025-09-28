@@ -8,16 +8,23 @@ import java.util.Date;
 
 
 //clase hija de VentanaPrincipal
+/*panel del menú de operador, esto contiene todo lo relacionado a los botones del menú de operadores
+y a las acciones de cada botón*/
 class MenuOperadorPanel extends JPanel {
     private static final long serialVersionUID = 1L;
-	private final DefaultListModel<String> modeloUsuarios = new DefaultListModel<>();
+
+    // Modelos para listas dinámicas de usuarios y ventas
+    private final DefaultListModel<String> modeloUsuarios = new DefaultListModel<>();
     private final DefaultListModel<String> modeloVentas = new DefaultListModel<>();
+
+    // Lista visual para mostrar ventas
     private final JList<String> listaVentas = new JList<>(modeloVentas);
 
     public MenuOperadorPanel(SistemaEntradas sistema, CardLayout cardLayout, JPanel panelPrincipal) {
+        // Se establece el diseño vertical del panel
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-        // Botones principales
+        // Botones principales del menú de operador y el texto que muestran
         JButton btnRegistrarEvento = new JButton("Registrar Evento");
         JButton btnMostrarUsuarios = new JButton("Mostrar Usuarios");
         JButton btnMostrarVentas = new JButton("Mostrar Ventas");
@@ -26,7 +33,8 @@ class MenuOperadorPanel extends JPanel {
         JButton btnModificarUbicacion = new JButton("Modificar Categoría");
         JButton btnEliminarUbicacion = new JButton("Eliminar Categoría");
         JButton btnVolver = new JButton("Volver");
-
+        
+        // Dimensiones y fuente de los botones para mantener coherencia visual
         Dimension botonGrande = new Dimension(240, 50);
         Font fuenteGrande = new Font("Arial", Font.BOLD, 18);
         for (JButton boton : new JButton[]{btnRegistrarEvento, btnMostrarUsuarios, btnMostrarVentas,
@@ -36,6 +44,7 @@ class MenuOperadorPanel extends JPanel {
             boton.setAlignmentX(Component.CENTER_ALIGNMENT);
         }
 
+        // Se agregan los botones al panel con separaciones verticales
         add(Box.createVerticalGlue());
         add(btnRegistrarEvento); add(Box.createVerticalStrut(10));
         add(btnMostrarUsuarios); add(Box.createVerticalStrut(10));
@@ -47,6 +56,7 @@ class MenuOperadorPanel extends JPanel {
         add(btnVolver);
         add(Box.createVerticalGlue());
 
+        // Acción del botón "Volver" → regresa al panel principal
         btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "inicio"));
 
         // =========================
@@ -64,11 +74,13 @@ class MenuOperadorPanel extends JPanel {
         // =========================
         btnMostrarVentas.addActionListener(e -> {
             modeloVentas.clear();
+            // Se agregan las ventas al modelo desde el sistema
             for (Entrada en : sistema.getEntradas()) {
                 modeloVentas.addElement("Usuario: " + en.getUsuario().getNombre() +
                         " | Evento: " + en.getEvento().getNombre() +
                         " | Precio: $" + en.getPrecio());
             }
+            // Muestra las ventas en un cuadro de diálogo
             JDialog dialog = new JDialog((Frame) null, "Lista de Ventas", true);
             dialog.setContentPane(new JScrollPane(listaVentas));
             dialog.setSize(400, 300);
@@ -84,6 +96,7 @@ class MenuOperadorPanel extends JPanel {
                 JOptionPane.showMessageDialog(null, "No hay eventos registrados.");
                 return;
             }
+            // Selección del evento a eliminar
             String[] eventosArray = sistema.getEventos().stream().map(Eventos::getNombre).toArray(String[]::new);
             JComboBox<String> comboEventos = new JComboBox<>(eventosArray);
             comboEventos.setSelectedIndex(-1);
@@ -107,6 +120,7 @@ class MenuOperadorPanel extends JPanel {
                 JOptionPane.showMessageDialog(null, "No hay eventos registrados.");
                 return;
             }
+            // Selección del evento a modificar
             String[] eventosArray = sistema.getEventos().stream().map(Eventos::getNombre).toArray(String[]::new);
             JComboBox<String> comboEventos = new JComboBox<>(eventosArray);
             comboEventos.setSelectedIndex(-1);
@@ -131,7 +145,9 @@ class MenuOperadorPanel extends JPanel {
         /*en este caso eliminar ubicación relacionado a la zona en donde estará 
         la persona y estas zonas se dividen segun la categoría, es decir: General, VIP o Platea */
         
-        //TODO LO RELACIONADO A GENERAR REPORTE
+        // =========================
+        // GENERAR REPORTE
+        // =========================
         JButton btnReporte = new JButton("Generar Reporte de Eventos");
         btnReporte.setMaximumSize(new Dimension(300, 50));
         btnReporte.setFont(new Font("Arial", Font.BOLD, 18));
@@ -139,7 +155,7 @@ class MenuOperadorPanel extends JPanel {
         add(Box.createVerticalStrut(0));
         add(btnReporte);
         
-        
+        // Acción del botón de generar reporte → guarda información de eventos en un archivo .txt
         btnReporte.addActionListener(ev -> {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setDialogTitle("Guardar reporte como...");
@@ -166,11 +182,13 @@ class MenuOperadorPanel extends JPanel {
     // MÉTODOS AUXILIARES
     // =========================
     
+    // Permite modificar la categoría (ubicación) de un evento existente
     private void modificarUbicacion(SistemaEntradas sistema) {
         if (sistema.getEventos().isEmpty()) {
             JOptionPane.showMessageDialog(null, "No hay eventos registrados.");
             return;
         }
+        // Selección de evento y categoría a modificar
         String[] eventosArray = sistema.getEventos().stream().map(Eventos::getNombre).toArray(String[]::new);
         JComboBox<String> comboEventos = new JComboBox<>(eventosArray);
         comboEventos.setSelectedIndex(-1);
@@ -191,6 +209,7 @@ class MenuOperadorPanel extends JPanel {
 
         Ubicacion ubicacion = evento.getUbicaciones().get(comboUbicaciones.getSelectedIndex());
 
+        // Campos editables de la categoría seleccionada
         JTextField txtNombre = new JTextField(ubicacion.getNombre());
         JTextField txtCapacidad = new JTextField(String.valueOf(ubicacion.getCapacidad()));
         JTextField txtPrecio = new JTextField(String.valueOf(ubicacion.getPrecio()));
@@ -200,6 +219,7 @@ class MenuOperadorPanel extends JPanel {
         panel.add(new JLabel("Capacidad:")); panel.add(txtCapacidad);
         panel.add(new JLabel("Precio:")); panel.add(txtPrecio);
 
+        // Confirmar modificación
         int resultado = JOptionPane.showConfirmDialog(null, panel, "Modificar Categoría", JOptionPane.OK_CANCEL_OPTION);
         if (resultado == JOptionPane.OK_OPTION) {
             try {
@@ -220,12 +240,13 @@ class MenuOperadorPanel extends JPanel {
         }
     }
 
-    //este metodo elimina la categoria de un evento, es decir, general, platea o VIP.
+    // Este método elimina una categoría (General, Platea o VIP) de un evento
     private void eliminarUbicacion(SistemaEntradas sistema) {
         if (sistema.getEventos().isEmpty()) {
             JOptionPane.showMessageDialog(null, "No hay eventos registrados.");
             return;
         }
+        // Selección del evento y la categoría a eliminar
         String[] eventosArray = sistema.getEventos().stream().map(Eventos::getNombre).toArray(String[]::new);
         JComboBox<String> comboEventos = new JComboBox<>(eventosArray);
         comboEventos.setSelectedIndex(-1);
@@ -255,12 +276,14 @@ class MenuOperadorPanel extends JPanel {
 
   //Este metodo se encarga de registrar un nuevo evento.
     private void registrarEvento(SistemaEntradas sistema) {
+        // Campos para ingresar los datos del nuevo evento
         JTextField txtNombre = new JTextField();
         JTextField txtLugar = new JTextField();
         JTextField txtFecha = new JTextField();
         JTextField txtCapacidad = new JTextField();
         JTextField txtCategoria = new JTextField();
 
+        // Panel para organizar los campos de entrada
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -270,15 +293,18 @@ class MenuOperadorPanel extends JPanel {
         panel.add(new JLabel("Capacidad:")); panel.add(txtCapacidad); panel.add(Box.createVerticalStrut(5));
         panel.add(new JLabel("Categoría:")); panel.add(txtCategoria); panel.add(Box.createVerticalStrut(10));
 
+        // Botones de confirmación o cancelación del registro
         JButton btnOK = new JButton("OK");
         JButton btnCancelar = new JButton("Cancelar");
         JPanel panelBotones = new JPanel();
         panelBotones.add(btnOK); panelBotones.add(btnCancelar);
         panel.add(panelBotones);
 
+        // Diálogo modal para el registro del evento
         JDialog dialogo = new JDialog((Frame) null, "Registrar Evento", true);
         dialogo.setContentPane(panel);
 
+        // Acción de registrar el evento
         btnOK.addActionListener(ev -> {
             try {
                 String nombre = txtNombre.getText().trim();
@@ -310,6 +336,7 @@ class MenuOperadorPanel extends JPanel {
             }
         });
 
+        // Acción para cerrar el diálogo sin guardar
         btnCancelar.addActionListener(ev -> dialogo.dispose());
 
         dialogo.pack();
@@ -319,12 +346,14 @@ class MenuOperadorPanel extends JPanel {
     
     //Este metodo se encarga de modificar todos los campos de un evento
     private void modificarEvento(Eventos evento) {
+        // Se crean campos con la información actual del evento
         JTextField txtNombre = new JTextField(evento.getNombre());
         JTextField txtLugar = new JTextField(evento.getLugar());
         JTextField txtFecha = new JTextField(new SimpleDateFormat("dd/MM/yyyy").format(evento.getFecha()));
         JTextField txtCapacidad = new JTextField(String.valueOf(evento.getCapacidad()));
         JTextField txtCategoria = new JTextField(evento.getCategoria());
 
+        // Panel con los campos editables
         JPanel panel = new JPanel(new GridLayout(0, 1, 5, 5));
         panel.add(new JLabel("Nombre:")); panel.add(txtNombre);
         panel.add(new JLabel("Lugar:")); panel.add(txtLugar);
@@ -332,6 +361,7 @@ class MenuOperadorPanel extends JPanel {
         panel.add(new JLabel("Capacidad:")); panel.add(txtCapacidad);
         panel.add(new JLabel("Categoría:")); panel.add(txtCategoria);
 
+        // Confirmación de modificación
         int resultado = JOptionPane.showConfirmDialog(null, panel, "Modificar Evento",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
@@ -349,7 +379,7 @@ class MenuOperadorPanel extends JPanel {
                     return;
                 }
 
-                // Modificar directamente en el objeto existente
+                // Modifica directamente los valores del objeto existente
                 evento.setNombre(nombreNuevo);
                 evento.setLugar(lugarNuevo);
                 evento.setFecha(fechaNueva);
@@ -368,8 +398,9 @@ class MenuOperadorPanel extends JPanel {
         }
     }
 
-    //Muestra los usuarios que hay
+    // Muestra los usuarios registrados con opción de filtrar por interés
     private void mostrarUsuariosConFiltro(SistemaEntradas sistema) {
+        // Panel principal con lista y campo de filtro
         JPanel panelUsuarios = new JPanel(new BorderLayout());
         JTextField txtFiltro = new JTextField(15);
         JButton btnFiltrar = new JButton("Filtrar");
@@ -385,19 +416,22 @@ class MenuOperadorPanel extends JPanel {
         panelUsuarios.add(scrollUsuarios, BorderLayout.CENTER);
         panelUsuarios.add(btnVolver, BorderLayout.SOUTH);
 
-        // Filtrar
+        // Filtrar usuarios por interés
         btnFiltrar.addActionListener(e -> actualizarListaUsuariosPorInteres(sistema, modeloUsuarios, txtFiltro.getText()));
         btnVolver.addActionListener(e -> ((JDialog) SwingUtilities.getWindowAncestor(panelUsuarios)).dispose());
 
+        // Cargar lista inicial sin filtro
         actualizarListaUsuariosPorInteres(sistema, modeloUsuarios, "");
 
+        // Mostrar ventana con la lista de usuarios
         JDialog dialog = new JDialog((Frame) null, "Lista de Usuarios", true);
         dialog.setContentPane(panelUsuarios);
         dialog.setSize(500, 400);
         dialog.setLocationRelativeTo(null);
         dialog.setVisible(true);
     }
-    //filtrar usuarios segun el interes
+
+    // Filtra y actualiza la lista de usuarios según un interés ingresado
     private void actualizarListaUsuariosPorInteres(SistemaEntradas sistema, DefaultListModel<String> modelo, String filtro) {
         modelo.clear();
         if (sistema.getUsuarios() == null) return;
@@ -416,6 +450,7 @@ class MenuOperadorPanel extends JPanel {
         }
     }
 
+    // Normaliza texto eliminando acentos y convirtiendo a minúsculas (para comparación)
     private String normalizarTexto(String texto) {
         if (texto == null) return "";
         String temp = java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD);
