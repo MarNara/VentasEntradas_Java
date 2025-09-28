@@ -6,6 +6,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+
+//clase hija de VentanaPrincipal
 class MenuOperadorPanel extends JPanel {
     private static final long serialVersionUID = 1L;
 	private final DefaultListModel<String> modeloUsuarios = new DefaultListModel<>();
@@ -21,8 +23,8 @@ class MenuOperadorPanel extends JPanel {
         JButton btnMostrarVentas = new JButton("Mostrar Ventas");
         JButton btnEliminarEvento = new JButton("Eliminar Evento");
         JButton btnModificarEvento = new JButton("Modificar Evento");
-        JButton btnModificarUbicacion = new JButton("Modificar Ubicación");
-        JButton btnEliminarUbicacion = new JButton("Eliminar Ubicación");
+        JButton btnModificarUbicacion = new JButton("Modificar Categoría");
+        JButton btnEliminarUbicacion = new JButton("Eliminar Categoría");
         JButton btnVolver = new JButton("Volver");
 
         Dimension botonGrande = new Dimension(240, 50);
@@ -119,12 +121,45 @@ class MenuOperadorPanel extends JPanel {
         // =========================
         // MODIFICAR UBICACIÓN
         // =========================
-        btnModificarUbicacion.addActionListener(e -> modificarUbicacion(sistema));
+        btnModificarUbicacion.addActionListener(e -> modificarUbicacion(sistema));/*en este caso esta relacionado a la zona en donde estará 
+        la persona y estas zonas se dividen segun la categoría, es decir: General, VIP o Platea */
 
         // =========================
         // ELIMINAR UBICACIÓN
         // =========================
         btnEliminarUbicacion.addActionListener(e -> eliminarUbicacion(sistema));
+        /*en este caso eliminar ubicación relacionado a la zona en donde estará 
+        la persona y estas zonas se dividen segun la categoría, es decir: General, VIP o Platea */
+        
+        //TODO LO RELACIONADO A GENERAR REPORTE
+        JButton btnReporte = new JButton("Generar Reporte de Eventos");
+        btnReporte.setMaximumSize(new Dimension(300, 50));
+        btnReporte.setFont(new Font("Arial", Font.BOLD, 18));
+        btnReporte.setAlignmentX(Component.CENTER_ALIGNMENT);
+        add(Box.createVerticalStrut(0));
+        add(btnReporte);
+        
+        
+        btnReporte.addActionListener(ev -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Guardar reporte como...");
+            int userSelection = fileChooser.showSaveDialog(null);
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                String rutaArchivo = fileChooser.getSelectedFile().getAbsolutePath();
+                if (!rutaArchivo.toLowerCase().endsWith(".txt")) {
+                    rutaArchivo += ".txt";
+                }
+                try {
+                    boolean ok = sistema.generarReporteEventosTXT(rutaArchivo);
+                    if (ok) {
+                        JOptionPane.showMessageDialog(null, "Reporte generado exitosamente en: " + rutaArchivo);
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "Error al generar reporte: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
     }
 
     // =========================
@@ -144,14 +179,14 @@ class MenuOperadorPanel extends JPanel {
 
         Eventos evento = sistema.getEventos().get(comboEventos.getSelectedIndex());
         if (evento.getUbicaciones().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Este evento no tiene ubicaciones.");
+            JOptionPane.showMessageDialog(null, "Este evento no tiene categorias.");
             return;
         }
 
         String[] ubicacionesArray = evento.getUbicaciones().stream().map(Ubicacion::getNombre).toArray(String[]::new);
         JComboBox<String> comboUbicaciones = new JComboBox<>(ubicacionesArray);
         comboUbicaciones.setSelectedIndex(-1);
-        int opcionUbic = JOptionPane.showConfirmDialog(null, comboUbicaciones, "Seleccione ubicación", JOptionPane.OK_CANCEL_OPTION);
+        int opcionUbic = JOptionPane.showConfirmDialog(null, comboUbicaciones, "Seleccione Categoría", JOptionPane.OK_CANCEL_OPTION);
         if (opcionUbic != JOptionPane.OK_OPTION || comboUbicaciones.getSelectedIndex() == -1) return;
 
         Ubicacion ubicacion = evento.getUbicaciones().get(comboUbicaciones.getSelectedIndex());
@@ -165,7 +200,7 @@ class MenuOperadorPanel extends JPanel {
         panel.add(new JLabel("Capacidad:")); panel.add(txtCapacidad);
         panel.add(new JLabel("Precio:")); panel.add(txtPrecio);
 
-        int resultado = JOptionPane.showConfirmDialog(null, panel, "Modificar Ubicación", JOptionPane.OK_CANCEL_OPTION);
+        int resultado = JOptionPane.showConfirmDialog(null, panel, "Modificar Categoría", JOptionPane.OK_CANCEL_OPTION);
         if (resultado == JOptionPane.OK_OPTION) {
             try {
                 String nuevoNombre = txtNombre.getText().trim();
@@ -178,13 +213,14 @@ class MenuOperadorPanel extends JPanel {
                 }
 
                 sistema.modificarUbicacion(evento, ubicacion, nuevoNombre, nuevaCapacidad, nuevoPrecio);
-                JOptionPane.showMessageDialog(null, "Ubicación modificada con éxito.");
+                JOptionPane.showMessageDialog(null, "Categoría modificada con éxito.");
             } catch(NumberFormatException ex) {
                 JOptionPane.showMessageDialog(null, "Capacidad o precio inválido.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
+    //este metodo elimina la categoria de un evento, es decir, general, platea o VIP.
     private void eliminarUbicacion(SistemaEntradas sistema) {
         if (sistema.getEventos().isEmpty()) {
             JOptionPane.showMessageDialog(null, "No hay eventos registrados.");
@@ -198,27 +234,26 @@ class MenuOperadorPanel extends JPanel {
 
         Eventos evento = sistema.getEventos().get(comboEventos.getSelectedIndex());
         if (evento.getUbicaciones().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Este evento no tiene ubicaciones.");
+            JOptionPane.showMessageDialog(null, "Este evento no tiene Categoría.");
             return;
         }
 
         String[] ubicacionesArray = evento.getUbicaciones().stream().map(Ubicacion::getNombre).toArray(String[]::new);
         JComboBox<String> comboUbicaciones = new JComboBox<>(ubicacionesArray);
         comboUbicaciones.setSelectedIndex(-1);
-        int opcionUbic = JOptionPane.showConfirmDialog(null, comboUbicaciones, "Seleccione ubicación a eliminar", JOptionPane.OK_CANCEL_OPTION);
+        int opcionUbic = JOptionPane.showConfirmDialog(null, comboUbicaciones, "Seleccione Categoria a eliminar", JOptionPane.OK_CANCEL_OPTION);
         if(opcionUbic != JOptionPane.OK_OPTION || comboUbicaciones.getSelectedIndex() == -1) return;
 
         Ubicacion ubicacion = evento.getUbicaciones().get(comboUbicaciones.getSelectedIndex());
-        int confirmar = JOptionPane.showConfirmDialog(null, "Eliminar ubicación " + ubicacion.getNombre() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        int confirmar = JOptionPane.showConfirmDialog(null, "Eliminar Categoría " + ubicacion.getNombre() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
         if(confirmar == JOptionPane.YES_OPTION) {
             sistema.eliminarUbicacion(evento, ubicacion);
-            JOptionPane.showMessageDialog(null, "Ubicación eliminada con éxito.");
+            JOptionPane.showMessageDialog(null, "Categoría eliminada con éxito.");
         }
     }
 
-    // --- resto de métodos como registrarEvento(), modificarEvento(), mostrarUsuariosConFiltro(), actualizarListaUsuariosPorInteres(), normalizarTexto() se mantienen igual ---
 
-
+  //Este metodo se encarga de registrar un nuevo evento.
     private void registrarEvento(SistemaEntradas sistema) {
         JTextField txtNombre = new JTextField();
         JTextField txtLugar = new JTextField();
@@ -281,7 +316,8 @@ class MenuOperadorPanel extends JPanel {
         dialogo.setLocationRelativeTo(null);
         dialogo.setVisible(true);
     }
-
+    
+    //Este metodo se encarga de modificar todos los campos de un evento
     private void modificarEvento(Eventos evento) {
         JTextField txtNombre = new JTextField(evento.getNombre());
         JTextField txtLugar = new JTextField(evento.getLugar());
@@ -332,7 +368,7 @@ class MenuOperadorPanel extends JPanel {
         }
     }
 
-
+    //Muestra los usuarios que hay
     private void mostrarUsuariosConFiltro(SistemaEntradas sistema) {
         JPanel panelUsuarios = new JPanel(new BorderLayout());
         JTextField txtFiltro = new JTextField(15);
@@ -361,7 +397,7 @@ class MenuOperadorPanel extends JPanel {
         dialog.setLocationRelativeTo(null);
         dialog.setVisible(true);
     }
-
+    //filtrar usuarios segun el interes
     private void actualizarListaUsuariosPorInteres(SistemaEntradas sistema, DefaultListModel<String> modelo, String filtro) {
         modelo.clear();
         if (sistema.getUsuarios() == null) return;
@@ -386,4 +422,5 @@ class MenuOperadorPanel extends JPanel {
         temp = temp.replaceAll("\\p{M}", "");
         return temp.toLowerCase();
     }
+    
 }

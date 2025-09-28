@@ -3,6 +3,10 @@ package entradas;
 import java.util.*;
 import java.io.*;
 import java.text.SimpleDateFormat;
+import java.io.PrintWriter;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+
 
 public class SistemaEntradas {
     private Map<String, Usuarios> usuarios;
@@ -271,6 +275,72 @@ public class SistemaEntradas {
     public void eliminarUbicacion(Eventos evento, Ubicacion ubicacion) {
         evento.getUbicaciones().remove(ubicacion);
     }
-
     
+    //para generar el reporte final 
+    public boolean generarReporteEventosTXT(String rutaArchivo) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(rutaArchivo))) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            int anchoLinea = 80; // ancho fijo para alinear a la derecha
+            int totalEntradasVendidas = 0;
+            double totalDinero = 0.0;
+
+            for (Eventos ev : eventos) {
+                bw.write("Evento: " + ev.getNombre());
+                bw.newLine();
+                bw.write("Lugar: " + ev.getLugar());
+                bw.newLine();
+                bw.write("Fecha: " + sdf.format(ev.getFecha()));
+                bw.newLine();
+                bw.write("Capacidad: " + ev.getCapacidad());
+                bw.newLine();
+                bw.write("Categoría: " + ev.getCategoria());
+                bw.newLine();
+
+                // Calcular precio promedio de las entradas vendidas o de la primera ubicación
+                double precio = 0.0;
+                long cantidadVendida = entradas.stream().filter(en -> en.getEvento().equals(ev)).count();
+                totalEntradasVendidas += cantidadVendida;
+
+                if (cantidadVendida > 0) {
+                    precio = entradas.stream()
+                            .filter(en -> en.getEvento().equals(ev))
+                            .findFirst()
+                            .get()
+                            .getPrecio();
+                } else if (!ev.getUbicaciones().isEmpty()) {
+                    precio = ev.getUbicaciones().get(0).getPrecio();
+                }
+
+                bw.write("Precio: $" + precio);
+                bw.newLine();
+                bw.write("Ventas realizadas para este evento: " + cantidadVendida);
+                bw.newLine();
+
+                // Total ventas del evento
+                double totalVentas = entradas.stream()
+                        .filter(en -> en.getEvento().equals(ev))
+                        .mapToDouble(Entrada::getPrecio)
+                        .sum();
+                totalDinero += totalVentas;
+
+                bw.write("Total ventas del evento: $" + totalVentas);
+                bw.newLine();
+                bw.write("---------------------------------------------------");
+                bw.newLine();
+            }
+
+            // Resumen final del total de ventas
+            String resumen = String.format("Total ventas: %d | Total recaudado: $%.2f", totalEntradasVendidas, totalDinero);
+            int espacios = Math.max(0, anchoLinea - resumen.length());
+            bw.write(" ".repeat(espacios) + resumen);
+            bw.newLine();
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
+
+

@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 
+//ventana hija
 class MenuUsuarioPanel extends JPanel {
  private static final long serialVersionUID = 1L;
  private final DefaultListModel<String> modeloEventos = new DefaultListModel<>();
